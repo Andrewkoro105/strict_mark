@@ -2,6 +2,7 @@ use chumsky::{
     DefaultExpected, error::Error as ChumskyError, label::LabelError, span::SimpleSpan,
     text::TextExpected as ChumskyTextExpected, util::MaybeRef,
 };
+use tracing::{debug, info};
 use std::collections::HashSet;
 #[cfg(test)]
 use std::hash::{BuildHasherDefault, DefaultHasher};

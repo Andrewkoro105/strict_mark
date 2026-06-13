@@ -27,7 +27,7 @@ pub enum ParamsExpected {
     F32,
 }
 
-pub fn parser_params<'src>() -> impl Parser<'src, &'src str, Params, extra::Err<Error<'src>>> {
+pub fn parser_params<'src>() -> impl Parser<'src, &'src str, Params, extra::Err<Error<'src>>> + Clone {
     text::ident()
         .labelled(Expected::Params(ParamsExpected::Name))
         .spanned()

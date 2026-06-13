@@ -5,16 +5,15 @@ use std::{collections::HashMap, path::PathBuf};
 
 use chumsky::span::SimpleSpan;
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub enum ParagraphType {
     #[default]
     Text,
-    Quote,
     Footnote,
     Other(String),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum EnumerateType {
     Number,
     Mark,
@@ -66,12 +65,12 @@ pub struct ParamData {
 
 pub type Params = HashMap<String, ParamData>;
 
-#[derive(Debug, PartialEq)]
-pub enum ParsData {
+#[derive(Debug, Clone, PartialEq)]
+pub enum ParseData {
     List(Vec<Self>),
     Name {
         name: String,
-        data: Box<ParsData>,
+        data: Box<ParseData>,
     },
     Comments(String),
     Title {
@@ -96,4 +95,5 @@ pub enum ParsData {
         label: String,
         code: String,
     },
+    PhantomNewLine,
 }

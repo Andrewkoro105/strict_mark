@@ -1,7 +1,7 @@
 use chumsky::prelude::*;
 
 use crate::data::{
-    ParsData, TextVariants,
+    ParseData, TextVariants,
     error::{Block, Error, Expected},
 };
 
@@ -13,7 +13,7 @@ pub enum FormulaExpected {
 
 fn parser_formula_str<'src>(
     delimiter_count: usize,
-) -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> {
+) -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> + Clone {
     let delimiter = "$".repeat(delimiter_count);
     choice((just("\\$").to("$"), just("\\\\").to("\\"), any().to_slice()))
         .and_is(just(delimiter.clone()).not())
@@ -31,13 +31,13 @@ fn parser_formula_str<'src>(
 }
 
 pub fn parser_inline_formula<'src>()
--> impl Parser<'src, &'src str, TextVariants, extra::Err<Error<'src>>> {
+-> impl Parser<'src, &'src str, TextVariants, extra::Err<Error<'src>>> + Clone {
     parser_formula_str(1).map(TextVariants::InlineFormula)
 }
 
-pub fn parser_formula<'src>() -> impl Parser<'src, &'src str, ParsData, extra::Err<Error<'src>>> {
+pub fn parser_formula<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
     parser_formula_str(2)
-        .map(ParsData::Formula)
+        .map(ParseData::Formula)
         .map_err(|err| err.set_target_block(Block::Formula))
 }
 
@@ -73,7 +73,7 @@ mod tests {
         let input = "$$ab\\$oba$$";
         assert_eq!(
             parser_formula().parse(input).into_result(),
-            Ok(ParsData::Formula("ab$oba".to_string()))
+            Ok(ParseData::Formula("ab$oba".to_string()))
         );
     }
 

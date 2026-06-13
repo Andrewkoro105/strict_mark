@@ -1,15 +1,16 @@
 use chumsky::{IterParser, Parser, extra, prelude::just};
 
-use crate::data::{ParsData, error::Error, parser::text::parser_text};
+use crate::data::{ParseData, error::Error, parser::text::parser_text};
 
-pub fn parser_title<'src>() -> impl Parser<'src, &'src str, ParsData, extra::Err<Error<'src>>> {
+pub fn parser_title<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
     just('#')
         .repeated()
         .at_least(1)
         .count()
         .then_ignore(just(' '))
         .then(parser_text().and_is(just("\n").not()))
-        .map(|(level, text)| ParsData::Title { level, text })
+        .then_ignore(just("\n").or_not())
+        .map(|(level, text)| ParseData::Title { level, text })
 }
 
 #[cfg(test)]
@@ -22,7 +23,7 @@ mod tests {
         let input = "# ddddd";
         assert_eq!(
             parser_title().parse(input).into_result(),
-            Ok(ParsData::Title {
+            Ok(ParseData::Title {
                 level: 1,
                 text: vec![TextVariants::Text("ddddd".to_string())]
             })
@@ -31,7 +32,7 @@ mod tests {
         let input = "## aaaaaa";
         assert_eq!(
             parser_title().parse(input).into_result(),
-            Ok(ParsData::Title {
+            Ok(ParseData::Title {
                 level: 2,
                 text: vec![TextVariants::Text("aaaaaa".to_string())]
             })
@@ -40,7 +41,7 @@ mod tests {
         let input = "###################### cccccc";
         assert_eq!(
             parser_title().parse(input).into_result(),
-            Ok(ParsData::Title {
+            Ok(ParseData::Title {
                 level: 22,
                 text: vec![TextVariants::Text("cccccc".to_string())]
             })

@@ -21,7 +21,8 @@ pub enum TextExpected {
     Text,
 }
 
-fn parser_base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> {
+fn parser_base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> + Clone
+{
     choice((
         just("\\*")
             .to("*")
@@ -41,8 +42,8 @@ fn parser_base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<E
         just("\\$")
             .to("$")
             .labelled(Expected::Text(TextExpected::Screening)),
-        just("\\)")
-            .to(")")
+        just("\\{")
+            .to("{")
             .labelled(Expected::Text(TextExpected::Screening)),
         just("\\\\")
             .to("\\")
@@ -59,7 +60,7 @@ fn parser_base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<E
             just("`"),
             just("@"),
             just("$"),
-            just(")"),
+            just("{"),
             just("\n"),
         ))
         .not(),
@@ -68,16 +69,9 @@ fn parser_base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<E
     .repeated()
     .at_least(1)
     .collect()
-    .and_is(
-        choice((
-            just("#").repeated().at_least(1).then(just(" ")).ignored(),
-            just("-").then(just(" ")).ignored(),
-        ))
-        .not(),
-    )
 }
 
-pub fn parser_text<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error<'src>>> {
+pub fn parser_text<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error<'src>>> + Clone {
     choice((
         parser_base_text()
             .filter(|a| !a.is_empty())
@@ -115,7 +109,12 @@ pub fn parser_text<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Erro
         parser_inline_formula(),
         just("@")
             .ignore_then(
-                parser_base_text()
+                any()
+                    .and_is(just(")").not())
+                    .to_slice()
+                    .repeated()
+                    .at_least(1)
+                    .collect()
                     .delimited_by(
                         just("(").labelled(Expected::Text(TextExpected::NameDelimiter)),
                         just(")").labelled(Expected::Text(TextExpected::NameDelimiter)),
@@ -129,6 +128,14 @@ pub fn parser_text<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Erro
     .repeated()
     .at_least(1)
     .collect()
+    .and_is(
+        choice((
+            just("#").repeated().at_least(1).then(just(" ")).ignored(),
+            just("- ").ignored(),
+            just("$$").ignored(),
+        ))
+        .not(),
+    )
 }
 
 #[cfg(test)]
@@ -153,7 +160,7 @@ mod tests {
 
         #[test]
         fn screening() {
-            let input = "asdfasdf\\~asdf\\`asdfa\\*dfsd\\_fcef";
+            let input = "asdfasdf\\~asdf\\`asdfa\\*dfsd\\_fc\\{ef";
             assert_eq!(
                 parser_base_text().parse(input).into_result(),
                 Ok(input.to_string().replace("\\", ""))
@@ -213,7 +220,7 @@ mod tests {
 
     #[test]
     fn base() {
-        let test_str = "bib\\* bab **bub**__beb s sis\\___ff~~rr~~ `123 45` *\\** @(ss 1):(ss 1.1)";
+        let test_str = "bib\\* bab **bub**__beb s sis\\___ff~~rr~~ `123 45` *\\** @(ss 1):(gg 1.1)";
         assert_eq!(
             parser_text().parse(test_str).into_result(),
             Ok(vec![
@@ -227,7 +234,7 @@ mod tests {
                 TextVariants::Text(" ".to_string()),
                 TextVariants::Italic("*".to_string()),
                 TextVariants::Text(" ".to_string()),
-                TextVariants::Link(vec!["ss 1".to_string(), "ss 1.1".to_string()])
+                TextVariants::Link(vec!["ss 1".to_string(), "gg 1.1".to_string()])
             ])
         );
     }
