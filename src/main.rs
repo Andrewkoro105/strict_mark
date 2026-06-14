@@ -6,7 +6,7 @@ use clap::{Parser, builder::OsStr};
 use tracing::{Level, info, warn};
 use tracing_subscriber::{filter::Targets, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::data::parser::strict_mark_parser;
+use crate::data::parser::strict_mark;
 
 #[derive(Parser, Debug)]
 #[command(name = "Strict mark")]
@@ -38,7 +38,7 @@ fn main() {
         .read_to_string(&mut file_str)
         .expect(&format!("Can`t read file {:?}", cli.path));
 
-    let (ast, errors) = strict_mark_parser().parse(&file_str).into_output_errors();
+    let (ast, errors) = strict_mark().parse(&file_str).into_output_errors();
 
     info!(
         "{:?} AST:\nError:\n{}\nResult:\n{}",

@@ -3,7 +3,7 @@ use chumsky::prelude::*;
 use crate::data::{
     Text, TextVariants,
     error::{Error, Expected},
-    parser::formula::parser_inline_formula,
+    parser::formula::inline_formula,
 };
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -21,7 +21,7 @@ pub enum TextExpected {
     Text,
 }
 
-fn parser_base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> + Clone
+fn base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> + Clone
 {
     choice((
         just("\\*")
@@ -71,42 +71,42 @@ fn parser_base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<E
     .collect()
 }
 
-pub fn parser_text<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error<'src>>> + Clone {
+pub fn text<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error<'src>>> + Clone {
     choice((
-        parser_base_text()
+        base_text()
             .filter(|a| !a.is_empty())
             .map(TextVariants::Text),
-        parser_base_text()
+        base_text()
             .delimited_by(
                 just("**").labelled(Expected::Text(TextExpected::BoldDelimiter)),
                 just("**").labelled(Expected::Text(TextExpected::BoldDelimiter)),
             )
             .map(TextVariants::Bold),
-        parser_base_text()
+        base_text()
             .delimited_by(
                 just("*").labelled(Expected::Text(TextExpected::ItalicDelimiter)),
                 just("*").labelled(Expected::Text(TextExpected::ItalicDelimiter)),
             )
             .map(TextVariants::Italic),
-        parser_base_text()
+        base_text()
             .delimited_by(
                 just("__").labelled(Expected::Text(TextExpected::UnderlinedDelimiter)),
                 just("__").labelled(Expected::Text(TextExpected::UnderlinedDelimiter)),
             )
             .map(TextVariants::Underlined),
-        parser_base_text()
+        base_text()
             .delimited_by(
                 just("~~").labelled(Expected::Text(TextExpected::StruckThroughDelimiter)),
                 just("~~").labelled(Expected::Text(TextExpected::StruckThroughDelimiter)),
             )
             .map(TextVariants::StruckThrough),
-        parser_base_text()
+        base_text()
             .delimited_by(
                 just("`").labelled(Expected::Text(TextExpected::UnbreakableTextDelimiter)),
                 just("`").labelled(Expected::Text(TextExpected::UnbreakableTextDelimiter)),
             )
             .map(TextVariants::UnbreakableText),
-        parser_inline_formula(),
+        inline_formula(),
         just("@")
             .ignore_then(
                 any()
@@ -153,7 +153,7 @@ mod tests {
         fn simple() {
             let input = "asdfasdfasdfasdfasdfsdfcef";
             assert_eq!(
-                parser_base_text().parse(input).into_result(),
+                base_text().parse(input).into_result(),
                 Ok(input.to_string())
             );
         }
@@ -162,7 +162,7 @@ mod tests {
         fn screening() {
             let input = "asdfasdf\\~asdf\\`asdfa\\*dfsd\\_fc\\{ef";
             assert_eq!(
-                parser_base_text().parse(input).into_result(),
+                base_text().parse(input).into_result(),
                 Ok(input.to_string().replace("\\", ""))
             );
         }
@@ -171,7 +171,7 @@ mod tests {
         fn new_line() {
             let input = "aaa\nbbb";
             assert_eq!(
-                parser_base_text().parse(input).into_result(),
+                base_text().parse(input).into_result(),
                 Err(vec![Error::expected_found(
                     vec![
                         Expected::Text(TextExpected::Text),
@@ -188,7 +188,7 @@ mod tests {
         fn error() {
             let input = "1234**sdfsdf";
             assert_eq!(
-                parser_base_text().parse(input).into_result(),
+                base_text().parse(input).into_result(),
                 Err(vec![Error::expected_found(
                     vec![
                         Expected::Text(TextExpected::Text),
@@ -205,7 +205,7 @@ mod tests {
         fn empty() {
             let input = "";
             assert_eq!(
-                parser_base_text().parse(input).into_result(),
+                base_text().parse(input).into_result(),
                 Err(vec![Error::expected_found(
                     vec![
                         Expected::Text(TextExpected::Text),
@@ -222,7 +222,7 @@ mod tests {
     fn base() {
         let test_str = "bib\\* bab **bub**__beb s sis\\___ff~~rr~~ `123 45` *\\** @(ss 1):(gg 1.1)";
         assert_eq!(
-            parser_text().parse(test_str).into_result(),
+            text().parse(test_str).into_result(),
             Ok(vec![
                 TextVariants::Text("bib* bab ".to_string()),
                 TextVariants::Bold("bub".to_string()),
@@ -243,7 +243,7 @@ mod tests {
     fn empty() {
         let input = "";
         assert_eq!(
-            parser_base_text().parse(input).into_result(),
+            base_text().parse(input).into_result(),
             Err(vec![Error::expected_found(
                 vec![
                     Expected::Text(TextExpected::Text),

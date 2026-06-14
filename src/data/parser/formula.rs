@@ -11,7 +11,7 @@ pub enum FormulaExpected {
     Text,
 }
 
-fn parser_formula_str<'src>(
+fn formula_str<'src>(
     delimiter_count: usize,
 ) -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> + Clone {
     let delimiter = "$".repeat(delimiter_count);
@@ -30,13 +30,13 @@ fn parser_formula_str<'src>(
         )
 }
 
-pub fn parser_inline_formula<'src>()
+pub fn inline_formula<'src>()
 -> impl Parser<'src, &'src str, TextVariants, extra::Err<Error<'src>>> + Clone {
-    parser_formula_str(1).map(TextVariants::InlineFormula)
+    formula_str(1).map(TextVariants::InlineFormula)
 }
 
-pub fn parser_formula<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
-    parser_formula_str(2)
+pub fn formula<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
+    formula_str(2)
         .map(ParseData::Formula)
         .map_err(|err| err.set_target_block(Block::Formula))
 }
@@ -53,7 +53,7 @@ mod tests {
         fn simple_1() {
             let input = "$ab\\$oba$";
             assert_eq!(
-                parser_formula_str(1).parse(input).into_result(),
+                formula_str(1).parse(input).into_result(),
                 Ok("ab$oba".to_string())
             );
         }
@@ -62,7 +62,7 @@ mod tests {
         fn simple_2() {
             let input = "$$ab\\$o$ba$$";
             assert_eq!(
-                parser_formula_str(2).parse(input).into_result(),
+                formula_str(2).parse(input).into_result(),
                 Ok("ab$o$ba".to_string())
             );
         }
@@ -72,7 +72,7 @@ mod tests {
     fn simple_2() {
         let input = "$$ab\\$oba$$";
         assert_eq!(
-            parser_formula().parse(input).into_result(),
+            formula().parse(input).into_result(),
             Ok(ParseData::Formula("ab$oba".to_string()))
         );
     }
@@ -81,7 +81,7 @@ mod tests {
     fn error() {
         let input = "$$ab\\$o$ba";
         assert_eq!(
-            parser_formula().parse(input).into_result(),
+            formula().parse(input).into_result(),
             Err(vec![Error::expected_found(
                 vec![Expected::Formula(FormulaExpected::Text), Expected::Formula(FormulaExpected::Delimiter(2))],
                 None,

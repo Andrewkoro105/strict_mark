@@ -27,7 +27,7 @@ pub enum ParamsExpected {
     F32,
 }
 
-pub fn parser_params<'src>() -> impl Parser<'src, &'src str, Params, extra::Err<Error<'src>>> + Clone {
+pub fn params<'src>() -> impl Parser<'src, &'src str, Params, extra::Err<Error<'src>>> + Clone {
     text::ident()
         .labelled(Expected::Params(ParamsExpected::Name))
         .spanned()
@@ -149,14 +149,14 @@ mod tests {
     #[test]
     fn empty() {
         let input = "{}";
-        assert_eq!(parser_params().parse(input).into_result(), Ok(hashmap! {}));
+        assert_eq!(params().parse(input).into_result(), Ok(hashmap! {}));
     }
 
     #[test]
     fn default_true() {
         let input = "{a}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Ok(hashmap! {
                 "a".to_string() => ParamData{
                     value: ParamValues::Bool(true),
@@ -175,7 +175,7 @@ mod tests {
     fn bool() {
         let input = "{a = true, b = false}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Ok(hashmap! {
                 "a".to_string() => ParamData{
                     value: ParamValues::Bool(true),
@@ -195,7 +195,7 @@ mod tests {
     fn int() {
         let input = "{a = 34, b = 42}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Ok(hashmap! {
                 "a".to_string() => ParamData{
                     value: ParamValues::I32(34),
@@ -215,7 +215,7 @@ mod tests {
     fn float() {
         let input = "{a = 34.42, b = -42.32, c = 69%}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Ok(hashmap! {
                 "a".to_string() => ParamData{
                     value: ParamValues::F32(34.42),
@@ -240,7 +240,7 @@ mod tests {
     fn indent() {
         let input = "{a = aaa, b = b22}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Ok(hashmap! {
                 "a".to_string() => ParamData{
                     value: ParamValues::Value("aaa".into()),
@@ -260,7 +260,7 @@ mod tests {
     fn list() {
         let input = "{a = [], b = [-1, 0, 2.3, aaa, [-1, 0, 2.3, aaa]]}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Ok(hashmap! {
                 "a".to_string() => ParamData{
                     value: ParamValues::List(vec![]),
@@ -291,7 +291,7 @@ mod tests {
     fn error() {
         let input = "{a";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Err(vec![Error::expected_found(
                 vec![
                     Expected::Other,
@@ -305,7 +305,7 @@ mod tests {
 
         let input = "{a b}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Err(vec![Error::expected_found(
                 vec![
                     Expected::Other,
@@ -322,7 +322,7 @@ mod tests {
     fn list_error() {
         let input = "{a = [a}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Err(vec![Error::expected_found(
                 vec![
                     Expected::Other,
@@ -336,7 +336,7 @@ mod tests {
 
         let input = "{a = [a b]}";
         assert_eq!(
-            parser_params().parse(input).into_result(),
+            params().parse(input).into_result(),
             Err(vec![Error::expected_found(
                 vec![
                     Expected::Params(ParamsExpected::ListSeparator),

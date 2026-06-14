@@ -4,14 +4,14 @@ use crate::data::{
     ParagraphType, ParamType, ParamValues, ParseData, Text, TextVariants,
     error::{Block, Error, Expected},
     parser::{
-        params::{ParamsExpected, parser_params, unknown_variables},
-        text::parser_text,
+        params::{ParamsExpected, params, unknown_variables},
+        text::text,
     },
 };
 
-fn parser_base_paragraph<'src>()
+fn base_paragraph<'src>()
 -> impl Parser<'src, &'src str, Text, extra::Err<Error<'src>>> + Clone {
-    parser_text()
+    text()
         .then(just("\n").to(TextVariants::PhantomNewLine).or_not())
         .map(|(mut text, new_line)| {
             if let Some(new_line) = new_line {
@@ -25,13 +25,13 @@ fn parser_base_paragraph<'src>()
         .map(|texts| texts.into_iter().flatten().collect())
 }
 
-pub fn parser_paragraph<'src>()
+pub fn paragraph<'src>()
 -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
-    parser_params()
+    params()
         .then_ignore(just("\n").or_not())
         .or_not()
         .map(Option::unwrap_or_default)
-        .then(parser_base_paragraph())
+        .then(base_paragraph())
         .validate(|(mut params, text), map_extra, emitter| {
             let paragraph_type = params
                 .remove(&"type".to_string())
@@ -77,7 +77,7 @@ mod tests {
     fn one_str() {
         let test_str = "bib\\* bab **bub**__beb s sis\\___ff~~rr~~ `123 45` *\\** @(ss 1):(ss 1.1)";
         assert_eq!(
-            parser_paragraph().parse(test_str).into_result(),
+            paragraph().parse(test_str).into_result(),
             Ok(ParseData::Paragraph {
                 paragraph_type: ParagraphType::Text,
                 text: vec![
@@ -101,7 +101,7 @@ mod tests {
     fn phantom_new_line() {
         let test_str = "bub bab \n bib beb";
         assert_eq!(
-            parser_paragraph().parse(test_str).into_result(),
+            paragraph().parse(test_str).into_result(),
             Ok(ParseData::Paragraph {
                 paragraph_type: ParagraphType::Text,
                 text: vec![
@@ -117,7 +117,7 @@ mod tests {
     fn not_default_type() {
         let test_str = "{type = footnote}\nbub bab";
         assert_eq!(
-            parser_paragraph().parse(test_str).into_result(),
+            paragraph().parse(test_str).into_result(),
             Ok(ParseData::Paragraph {
                 paragraph_type: ParagraphType::Footnote,
                 text: vec![
@@ -128,7 +128,7 @@ mod tests {
 
         let test_str = "{type = fuf}\nbub bab";
         assert_eq!(
-            parser_paragraph().parse(test_str).into_result(),
+            paragraph().parse(test_str).into_result(),
             Ok(ParseData::Paragraph {
                 paragraph_type: ParagraphType::Other("fuf".into()),
                 text: vec![

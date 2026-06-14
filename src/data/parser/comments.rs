@@ -1,7 +1,7 @@
 use chumsky::prelude::*;
 use crate::data::{ParseData, error::Error};
 
-pub fn parser_comments<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
+pub fn comments<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
     just("% ")
         .ignore_then(
             any()
@@ -28,19 +28,19 @@ mod tests {
     fn base_test() {
         let input = "% ddddd";
         assert_eq!(
-            parser_comments().parse(input).into_result(),
+            comments().parse(input).into_result(),
             Ok(ParseData::Comments("ddddd".to_string()))
         );
 
         let input = "% ddddd\n% ddddd";
         assert_eq!(
-            parser_comments().parse(input).into_result(),
+            comments().parse(input).into_result(),
             Ok(ParseData::Comments("ddddd\nddddd".to_string()))
         );
 
         let input = "%ddddd\n%ddddd";
         assert_eq!(
-            parser_comments().parse(input).into_result(),
+            comments().parse(input).into_result(),
             Err(vec![Error::expected_found(
                     vec![
                         Expected::Other,

@@ -12,18 +12,18 @@ use chumsky::{
 use crate::data::{
     ParagraphType, ParseData, TextVariants,
     error::Error,
-    parser::{comments::parser_comments, formula::parser_formula, paragraph::parser_paragraph, title::parser_title},
+    parser::{comments::comments, formula::formula, paragraph::paragraph, title::title},
 };
 
-pub fn strict_mark_parser<'src>() -> impl Parser<'src, &'src str, Vec<ParseData>, extra::Err<Error<'src>>>
+pub fn strict_mark<'src>() -> impl Parser<'src, &'src str, Vec<ParseData>, extra::Err<Error<'src>>>
 {
     recursive(|strict_mark_parser| {
         choice((
             just("\n").to(ParseData::PhantomNewLine),
-            parser_title(),
-            parser_paragraph(),
-            parser_formula(),
-            parser_comments(),
+            title(),
+            paragraph(),
+            formula(),
+            comments(),
         ))
         .repeated()
         .collect()
