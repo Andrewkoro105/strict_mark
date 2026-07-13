@@ -2,7 +2,7 @@ use chumsky::{IterParser, Parser, extra, prelude::just};
 
 use crate::data::{ParseData, error::Error, parser::text::text};
 
-pub fn title<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
+pub fn title<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error>> + Clone {
     just('#')
         .repeated()
         .at_least(1)

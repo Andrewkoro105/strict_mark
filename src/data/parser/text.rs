@@ -21,7 +21,7 @@ pub enum TextExpected {
     Text,
 }
 
-fn base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> + Clone
+fn base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error>> + Clone
 {
     choice((
         just("\\*")
@@ -71,7 +71,7 @@ fn base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error<'s
     .collect()
 }
 
-pub fn text<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error<'src>>> + Clone {
+pub fn text<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error>> + Clone {
     choice((
         base_text()
             .filter(|a| !a.is_empty())

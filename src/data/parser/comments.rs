@@ -1,7 +1,7 @@
 use chumsky::prelude::*;
 use crate::data::{ParseData, error::Error};
 
-pub fn comments<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
+pub fn comments<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error>> + Clone {
     just("% ")
         .ignore_then(
             any()

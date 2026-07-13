@@ -10,7 +10,7 @@ use crate::data::{
 };
 
 fn base_paragraph<'src>()
--> impl Parser<'src, &'src str, Text, extra::Err<Error<'src>>> + Clone {
+-> impl Parser<'src, &'src str, Text, extra::Err<Error>> + Clone {
     text()
         .then(just("\n").to(TextVariants::PhantomNewLine).or_not())
         .map(|(mut text, new_line)| {
@@ -26,7 +26,7 @@ fn base_paragraph<'src>()
 }
 
 pub fn paragraph<'src>()
--> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
+-> impl Parser<'src, &'src str, ParseData, extra::Err<Error>> + Clone {
     params()
         .then_ignore(just("\n").or_not())
         .or_not()

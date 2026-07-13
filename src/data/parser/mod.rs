@@ -1,31 +1,37 @@
 pub mod comments;
+pub mod composite_text;
+pub mod enumerate;
 pub mod formula;
 pub mod paragraph;
 pub mod params;
 pub mod text;
 pub mod title;
 
-use chumsky::{
-    IterParser, Parser, extra, prelude::{choice, just, recursive, todo}
-};
-
 use crate::data::{
-    ParagraphType, ParseData, TextVariants,
+    ParseData,
     error::Error,
-    parser::{comments::comments, formula::formula, paragraph::paragraph, title::title},
+    parser::{
+        comments::comments, enumerate::enumerate, formula::formula, paragraph::paragraph,
+        title::title,
+    },
+};
+use chumsky::{
+    IterParser, Parser, extra,
+    prelude::{choice, just, recursive},
 };
 
-pub fn strict_mark<'src>() -> impl Parser<'src, &'src str, Vec<ParseData>, extra::Err<Error<'src>>>
-{
-    recursive(|strict_mark_parser| {
+pub fn strict_mark<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error>> {
+    recursive(|strict_mark| {
         choice((
             just("\n").to(ParseData::PhantomNewLine),
             title(),
             paragraph(),
             formula(),
             comments(),
+            //enumerate(strict_mark),
         ))
         .repeated()
         .collect()
+        .map(ParseData::List)
     })
 }

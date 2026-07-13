@@ -1,9 +1,10 @@
 pub mod error;
 pub mod parser;
+#[macro_use] pub mod pre_final_enums;
 
+use crate::data::error::Error;
+use chumsky::{ParseResult, span::SimpleSpan};
 use std::{collections::HashMap, path::PathBuf};
-
-use chumsky::span::SimpleSpan;
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum ParagraphType {
@@ -65,35 +66,53 @@ pub struct ParamData {
 
 pub type Params = HashMap<String, ParamData>;
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum ParseData {
-    List(Vec<Self>),
-    Name {
-        name: String,
-        data: Box<ParseData>,
+pre_final_enums!(
+    ParseData, PreParseData, {
+        List(Vec<Self>),
+        Name {
+            name: String,
+            data: Box<Self>,
+        },
+        Comments(String),
+        Title {
+            level: usize,
+            text: Text,
+        },
+        Paragraph {
+            paragraph_type: ParagraphType,
+            text: Text,
+        },
+        Formula(String),
+        InsertPage(PathBuf),
+        InsertContent {
+            path: PathBuf,
+            caption: Text,
+        },
+        Enumerate {
+            enumerate_type: EnumerateType,
+            data: Vec<Self>,
+        },
+        Code {
+            label: String,
+            code: String,
+        },
+        PhantomNewLine,
     },
-    Comments(String),
-    Title {
-        level: usize,
-        text: Text,
-    },
-    Paragraph {
-        paragraph_type: ParagraphType,
-        text: Text,
-    },
-    Formula(String),
-    InsertPage(PathBuf),
-    InsertContent {
-        path: PathBuf,
-        caption: Text,
-    },
-    Enumerate {
-        enumerate_type: EnumerateType,
-        data: Vec<Self>,
-    },
-    Code {
-        label: String,
-        code: String,
-    },
-    PhantomNewLine,
-}
+    IntoParse<Error>::parse(parser: impl Fn(&String) -> ParseResult<PreParseData, Error> + Clone),
+    {
+        Pre(data_str: String) => {
+            let (pre_result, pre_err) = parser(&data_str).into_output_errors();
+            if let Some(pre_result) = pre_result {
+                let (result, mut err) = pre_result
+                    .parse(parser)
+                    .map_err(|mut err| {
+                        err.extend(pre_err.clone()); err
+                    })?;
+                err.extend(pre_err);
+                Ok((result, err))
+            } else {
+                Err(pre_err)
+            }
+        },
+    }
+);

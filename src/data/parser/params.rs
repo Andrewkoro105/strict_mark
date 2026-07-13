@@ -27,7 +27,7 @@ pub enum ParamsExpected {
     F32,
 }
 
-pub fn params<'src>() -> impl Parser<'src, &'src str, Params, extra::Err<Error<'src>>> + Clone {
+pub fn params<'src>() -> impl Parser<'src, &'src str, Params, extra::Err<Error>> + Clone {
     text::ident()
         .labelled(Expected::Params(ParamsExpected::Name))
         .spanned()
@@ -124,7 +124,7 @@ pub fn params<'src>() -> impl Parser<'src, &'src str, Params, extra::Err<Error<'
 pub fn unknown_variables<'src>(
     variables: HashMap<String, ParamData>,
     known_name: Vec<String>,
-) -> Vec<Error<'src>> {
+) -> Vec<Error> {
     variables
         .iter()
         .map(|(name, data)| {

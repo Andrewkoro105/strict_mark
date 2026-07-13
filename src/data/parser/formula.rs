@@ -13,7 +13,7 @@ pub enum FormulaExpected {
 
 fn formula_str<'src>(
     delimiter_count: usize,
-) -> impl Parser<'src, &'src str, String, extra::Err<Error<'src>>> + Clone {
+) -> impl Parser<'src, &'src str, String, extra::Err<Error>> + Clone {
     let delimiter = "$".repeat(delimiter_count);
     choice((just("\\$").to("$"), just("\\\\").to("\\"), any().to_slice()))
         .and_is(just(delimiter.clone()).not())
@@ -31,11 +31,11 @@ fn formula_str<'src>(
 }
 
 pub fn inline_formula<'src>()
--> impl Parser<'src, &'src str, TextVariants, extra::Err<Error<'src>>> + Clone {
+-> impl Parser<'src, &'src str, TextVariants, extra::Err<Error>> + Clone {
     formula_str(1).map(TextVariants::InlineFormula)
 }
 
-pub fn formula<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error<'src>>> + Clone {
+pub fn formula<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error>> + Clone {
     formula_str(2)
         .map(ParseData::Formula)
         .map_err(|err| err.set_target_block(Block::Formula))

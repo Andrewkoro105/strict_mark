@@ -53,10 +53,7 @@ fn main() {
             "\tNone".to_string()
         },
         if let Some(ast) = ast {
-            ast.iter()
-                .map(|data| format!("\t{:?}", data))
-                .collect::<Vec<_>>()
-                .join("\n")
+            format!("{:?}", ast)
         } else {
             "\tNone".to_string()
         }
