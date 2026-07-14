@@ -1,12 +1,13 @@
 pub mod data;
 use std::{fs::File, io::Read, path::PathBuf};
 
-use chumsky::Parser as ChumskyParser;
-use clap::{Parser, builder::OsStr};
-use tracing::{Level, info, warn};
-use tracing_subscriber::{filter::Targets, fmt, layer::SubscriberExt, util::SubscriberInitExt};
-
+use crate::data::{IntoParse, error::ErrorEditor};
 use crate::data::parser::strict_mark;
+use chumsky::Parser as ChumskyParser;
+use clap::Parser;
+use data::PreParseData;
+use tracing::{Level, error, info, warn};
+use tracing_subscriber::{filter::Targets, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser, Debug)]
 #[command(name = "Strict mark")]
@@ -38,24 +39,35 @@ fn main() {
         .read_to_string(&mut file_str)
         .expect(&format!("Can`t read file {:?}", cli.path));
 
-    let (ast, errors) = strict_mark().parse(&file_str).into_output_errors();
+    let result = PreParseData::Pre {
+        data_str: file_str,
+        block_editor: ErrorEditor::none(),
+    }
+    .parse(|s| strict_mark().parse(s));
 
-    info!(
-        "{:?} AST:\nError:\n{}\nResult:\n{}",
-        cli.path,
-        if !errors.is_empty() {
-            errors
-                .iter()
-                .map(|err| format!("\t{:?}", err))
-                .collect::<Vec<_>>()
-                .join("\n")
-        } else {
-            "\tNone".to_string()
-        },
-        if let Some(ast) = ast {
-            format!("{:?}", ast)
-        } else {
-            "\tNone".to_string()
+    info!("parse: {:?}", cli.path,);
+
+    match result {
+        Ok((ast, errs)) => {
+            if !errs.is_empty() {
+                warn!(
+                    "Error:\n{}\n",
+                    errs.iter()
+                        .map(|err| format!("\t{:?}", err))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                );
+            }
+            info!("Result:\n{}", serde_json::to_string_pretty(&ast).unwrap());
         }
-    );
+        Err(errs) => {
+            error!(
+                "Total Error: [\n{}\n]",
+                errs.iter()
+                    .map(|err| format!("\t{:?}", err))
+                    .collect::<Vec<_>>()
+                    .join("\n"),
+            );
+        }
+    }
 }

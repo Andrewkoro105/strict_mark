@@ -1,6 +1,7 @@
 #[crabtime::function]
 fn pre_final_enums(
     pattern!(
+        $($drive:literal,)?
         $name1:ident,
         $name2:ident,
         {
@@ -129,6 +130,10 @@ fn pre_final_enums(
         }
     }
 
+    let drive = expand!([$($drive . to_string())?])
+        .first()
+        .cloned()
+        .unwrap_or("".to_string());
     let name1 = stringify!($name1);
     let name2 = stringify!($name2);
     let into_trait = stringify!($into_trait);
@@ -275,8 +280,12 @@ fn pre_final_enums(
             }
         }
 
-        #[derive(Debug, Clone, PartialEq)]
+        //#[derive(Debug, Clone, PartialEq)]
+        {{drive}}
         pub enum {{name1}}{ {{base_params_str}} }
+
+        //#[derive(Debug, Clone, PartialEq)]
+        {{drive}}
         pub enum {{name2}}{ {{base_params_str}}, {{add_params_str}} }
 
         impl {{into_trait}}<{{name1}}, {{err}}> for {{name2}} {

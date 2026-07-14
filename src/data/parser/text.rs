@@ -174,9 +174,9 @@ mod tests {
                 base_text().parse(input).into_result(),
                 Err(vec![Error::expected_found(
                     vec![
-                        Expected::Text(TextExpected::Text),
                         Expected::Other,
-                        Expected::Text(TextExpected::Screening)
+                        Expected::Text(TextExpected::Screening),
+                        Expected::Text(TextExpected::Text),
                     ],
                     Some(Maybe::Ref(&'\n')),
                     (3..4).into()
@@ -191,9 +191,9 @@ mod tests {
                 base_text().parse(input).into_result(),
                 Err(vec![Error::expected_found(
                     vec![
-                        Expected::Text(TextExpected::Text),
                         Expected::Other,
-                        Expected::Text(TextExpected::Screening)
+                        Expected::Text(TextExpected::Screening),
+                        Expected::Text(TextExpected::Text),
                     ],
                     Some(Maybe::Ref(&'*')),
                     (4..5).into()
@@ -208,8 +208,8 @@ mod tests {
                 base_text().parse(input).into_result(),
                 Err(vec![Error::expected_found(
                     vec![
+                        Expected::Text(TextExpected::Screening),
                         Expected::Text(TextExpected::Text),
-                        Expected::Text(TextExpected::Screening)
                     ],
                     None,
                     (0..0).into()
@@ -246,8 +246,8 @@ mod tests {
             base_text().parse(input).into_result(),
             Err(vec![Error::expected_found(
                 vec![
+                    Expected::Text(TextExpected::Screening),
                     Expected::Text(TextExpected::Text),
-                    Expected::Text(TextExpected::Screening)
                 ],
                 None,
                 (0..0).into()

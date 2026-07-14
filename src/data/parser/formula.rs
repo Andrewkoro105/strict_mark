@@ -1,7 +1,7 @@
 use chumsky::prelude::*;
 
 use crate::data::{
-    ParseData, TextVariants,
+    PreParseData, TextVariants,
     error::{Block, Error, Expected},
 };
 
@@ -35,9 +35,9 @@ pub fn inline_formula<'src>()
     formula_str(1).map(TextVariants::InlineFormula)
 }
 
-pub fn formula<'src>() -> impl Parser<'src, &'src str, ParseData, extra::Err<Error>> + Clone {
+pub fn formula<'src>() -> impl Parser<'src, &'src str, PreParseData, extra::Err<Error>> + Clone {
     formula_str(2)
-        .map(ParseData::Formula)
+        .map(PreParseData::Formula)
         .map_err(|err| err.set_target_block(Block::Formula))
 }
 
@@ -73,7 +73,7 @@ mod tests {
         let input = "$$ab\\$oba$$";
         assert_eq!(
             formula().parse(input).into_result(),
-            Ok(ParseData::Formula("ab$oba".to_string()))
+            Ok(PreParseData::Formula("ab$oba".to_string()))
         );
     }
 

@@ -295,8 +295,8 @@ mod tests {
             Err(vec![Error::expected_found(
                 vec![
                     Expected::Other,
-                    Expected::Params(ParamsExpected::Separator),
                     Expected::Params(ParamsExpected::Delimited),
+                    Expected::Params(ParamsExpected::Separator),
                 ],
                 None,
                 (2..2).into()
@@ -309,8 +309,8 @@ mod tests {
             Err(vec![Error::expected_found(
                 vec![
                     Expected::Other,
-                    Expected::Params(ParamsExpected::Separator),
                     Expected::Params(ParamsExpected::Delimited),
+                    Expected::Params(ParamsExpected::Separator),
                 ],
                 Some(Maybe::Ref(&'b')),
                 (3..4).into()
