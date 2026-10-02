@@ -5,11 +5,15 @@ pub mod title;
 
 use crate::{
     compiler::{lua::LuaStyle, paragraph::Paragraph, title::Title},
-    data::ParseData,
+    data::{self, ParseData},
     rdocx_decl,
 };
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+};
+use tracing::warn;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Cash {}
@@ -39,6 +43,44 @@ pub enum Integration {
 pub struct Compiler {
     pub titles: Vec<Title>,
     pub paragraph: Vec<Paragraph>,
+}
+
+impl Default for Compiler {
+    fn default() -> Self {
+        Self {
+            paragraph: vec![Paragraph {
+                data: paragraph::Data {
+                    paragraph_type: data::ParagraphType::Default,
+                },
+                style: LuaStyle::Base(paragraph::Style {
+                    rdocx_style: rdocx_decl::paragraph::Style::default(),
+                }),
+            }],
+            titles: vec![Title {
+                data: title::Data { level: 1 },
+                style: LuaStyle::Base(title::Style {
+                    rdocx_style: rdocx_decl::paragraph::Style::default()
+                        .alignment(Some(rdocx_decl::paragraph::Alignment::Center)),
+                }),
+            }],
+        }
+    }
+}
+
+impl Compiler {
+    pub fn load(path: &Path) -> Self {
+        File::open(path)
+            .map_err(|err| Box::new(err) as Box<dyn std::error::Error>)
+            .and_then(|file| {
+                serde_saphyr::from_reader::<_, Self>(file)
+                    .map_err(|err| Box::new(err) as Box<dyn std::error::Error>)
+            })
+            .map_err(|err| {
+                warn!("Load compiler error ({path:?}): {err:?}");
+                err
+            })
+            .unwrap_or_default()
+    }
 }
 
 impl Compile<ParseData, (Vec<rdocx_decl::document::Content>, Vec<Error>)> for Compiler {

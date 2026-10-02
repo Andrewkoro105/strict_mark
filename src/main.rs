@@ -2,42 +2,67 @@ pub mod compiler;
 pub mod data;
 pub mod rdocx_decl;
 
-use crate::compiler::lua::LuaStyle;
-use crate::compiler::paragraph::Paragraph;
-use crate::compiler::title::{self, Title};
-use crate::compiler::{Compiler, paragraph};
+use crate::compiler::Compiler;
 use crate::data::parser::strict_mark;
 use crate::data::{IntoParse, error::ErrorEditor};
 use chumsky::Parser as ChumskyParser;
 use clap::Parser;
 use data::PreParseData;
 use std::{fs::File, io::Read, path::PathBuf};
-use tracing::{Level, error, info, warn};
+use tracing::{Level, debug, error, info, warn};
 use tracing_subscriber::{filter::Targets, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser, Debug)]
 #[command(name = "Strict mark")]
 #[command(long_about = None)]
-struct Cli {
-    // #[arg(short, long)]
-    // style: PathBuf,
-    // #[arg(short, long)]
-    // output_path: Option<PathBuf>,
+struct BaseCli {
+    #[arg(short, long)]
+    style: Option<PathBuf>,
+    #[arg(short, long)]
+    output_path: Option<PathBuf>,
+    #[arg(short, long)]
+    debug: bool,
     #[arg(last = true)]
+    path: Option<PathBuf>,
+}
+
+struct Cli {
+    style: PathBuf,
+    output_path: PathBuf,
+    debug: bool,
     path: PathBuf,
 }
 
+impl From<BaseCli> for Cli {
+    fn from(cli: BaseCli) -> Self {
+        let path = cli.path.unwrap_or(PathBuf::from("main.sm"));
+        Cli {
+            style: cli.style.unwrap_or(PathBuf::from("style.yaml")),
+            output_path: path
+                .parent()
+                .zip(path.file_stem())
+                .map(|(parent, name)| parent.join(format!("{}.docx", name.to_string_lossy())))
+                .unwrap_or(PathBuf::from("main.docx")),
+            debug: cli.debug,
+            path,
+        }
+    }
+}
+
 fn main() {
+    let cli = Cli::from(BaseCli::parse());
+
     let filter = Targets::new()
-        .with_target(env!("CARGO_PKG_NAME"), Level::DEBUG)
+        .with_target(
+            env!("CARGO_PKG_NAME"),
+            if cli.debug { Level::DEBUG } else { Level::INFO },
+        )
         .with_default(Level::INFO);
 
     tracing_subscriber::registry()
         .with(fmt::Layer::new())
         .with(filter)
         .init();
-
-    let cli = Cli::parse();
 
     if cli.path.extension() != Some("sm".as_ref()) {
         warn!("This file has the wrong file extension or no file extension at all.");
@@ -68,28 +93,17 @@ fn main() {
                         .join("\n")
                 );
             }
-            info!("Result:\n{}", serde_json::to_string_pretty(&ast).unwrap());
+            debug!("Parse result:\n{:#?}", ast);
 
-            let compiler = Compiler {
-                paragraph: vec![Paragraph {
-                    data: paragraph::Data {
-                        paragraph_type: data::ParagraphType::Default,
-                    },
-                    style: LuaStyle::Base(paragraph::Style {
-                        rdocx_style: rdocx_decl::paragraph::Style::default(),
-                    }),
-                }],
-                titles: vec![Title {
-                    data: title::Data { level: 1 },
-                    style: LuaStyle::Base(title::Style {
-                        rdocx_style: rdocx_decl::paragraph::Style::default()
-                            .alignment(Some(rdocx_decl::paragraph::Alignment::Center)),
-                    }),
-                }],
-            };
+            let compiler = Compiler::load(&cli.style);
 
-            let (result, errs) = compiler.compile(&ast);
-            result.to_rdocx().save("test.docx").unwrap();
+            let (rdocx_decl_ast, errs) = compiler.compile(&ast);
+            debug!("Compile result:\n{:#?}", rdocx_decl_ast);
+
+            rdocx_decl_ast.to_rdocx().save(&cli.output_path).unwrap();
+
+            info!("Save: {:?}", cli.output_path);
+
             if !errs.is_empty() {
                 warn!(
                     "Compile error:\n{}\n",
