@@ -50,7 +50,7 @@ fn to_rdocx_static_dispatch(
         r"
         impl<{generic0}> ToRdocx<{generic1}, {generic2}> for {name} {{
             fn to_rdocx(&self, doc: &mut {generic1}, data: {generic2}, cash: &mut Cash) {{
-            match self {{
+                match self {{
     "
     ));
 

@@ -10,6 +10,11 @@ to_rdocx_static_dispatch!{
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Stile {
+
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Document {
     pub contents: Vec<Content>,
 }

@@ -6,7 +6,7 @@ pub mod title;
 use crate::{
     compiler::{lua::LuaStyle, paragraph::Paragraph, title::Title},
     data::{self, ParseData},
-    rdocx_decl,
+    rdocx_decl::{self, run, utils::{Color, Length}},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -60,7 +60,13 @@ impl Default for Compiler {
                 data: title::Data { level: 1 },
                 style: LuaStyle::Base(title::Style {
                     rdocx_style: rdocx_decl::paragraph::Style::default()
-                        .alignment(Some(rdocx_decl::paragraph::Alignment::Center)),
+                        .alignment(Some(rdocx_decl::paragraph::Alignment::Center))
+                        .borders(Some(rdocx_decl::utils::border::Borders::All {
+                            style: rdocx_decl::utils::border::BorderStyle::Dashed,
+                            size: rdocx_decl::utils::Length::Pt(1.),
+                            color: Color::Hex("#000000".into()),
+                        }))
+                        .base_run(Some(run::Style::default().size(Some(Length::Pt(20.))))),
                 }),
             }],
         }

@@ -1,6 +1,6 @@
 use crate::rdocx_decl::{
     Cash, ToRdocx,
-    run::Run,
+    run::{self, Run},
     utils::{Color, Length, SectionBreak, SectionPageSize, border::Borders, tab::TabStop},
 };
 use rdocx::Document;
@@ -40,12 +40,14 @@ pub struct Style {
     pub outline_level: Option<u32>,
     pub section_break: Option<SectionBreak>,
     pub section_page_size: Option<SectionPageSize>,
+
+    pub base_run: Option<run::Style>,
 }
 
 to_rdocx_static_dispatch!{
     {#[derive(Debug, Clone, Serialize, Deserialize)]},
     impl{'p},
-    <{D: rdocx::Paragraph<'p>}>,
+    <{D: rdocx::Paragraph<'p>}, {T: &Option<run::Style>}>,
     Content {
         Run
     }
@@ -59,10 +61,10 @@ pub struct Paragraph {
 }
 
 impl ToRdocx<Document> for Paragraph {
-    fn to_rdocx(&self, doc: &mut Document, data: (), cash: &mut Cash) {
+    fn to_rdocx(&self, doc: &mut Document, _data: (), cash: &mut Cash) {
         let mut paragraph = doc.add_paragraph("");
         self.contents.iter().for_each(|content| {
-            content.to_rdocx(&mut paragraph, data, cash);
+            content.to_rdocx(&mut paragraph, &self.style.base_run, cash);
         });
 
         paragraph.set_alignment_value(self.style.alignment.clone().map(Into::into));
@@ -234,6 +236,11 @@ impl Style {
 
     pub fn section_page_size(mut self, section_page_size: Option<SectionPageSize>) -> Self {
         self.section_page_size = section_page_size;
+        self
+    }
+
+    pub fn base_run(mut self, base_run: Option<run::Style>) -> Self {
+        self.base_run = base_run;
         self
     }
 }
