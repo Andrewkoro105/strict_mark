@@ -5,10 +5,10 @@ pub mod pre_final_enums;
 
 use crate::data::error::{Error, ErrorEditor};
 use chumsky::{ParseResult, span::SimpleSpan};
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
-use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ParagraphType {
     #[default]
     Default,
@@ -71,37 +71,58 @@ pub struct ParamData {
 
 pub type Params = HashMap<String, ParamData>;
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Title {
+    pub level: usize,
+    pub text: Text,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Paragraph {
+    pub paragraph_type: ParagraphType,
+    pub text: Text,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InsertPage {
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Formula {
+    pub formula: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InsertContent {
+    pub path: PathBuf,
+    pub caption: Text,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Enumerate<T> {
+    pub enumerate_type: EnumerateType,
+    pub data: Vec<T>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Code {
+    pub label: String,
+    pub code: String,
+}
+
 pre_final_enums!(
     "#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]",
     ParseData, PreParseData, {
         List(Vec<Self>),
-        Name {
-            name: String,
-            data: Box<Self>,
-        },
         Comments(String),
-        Title {
-            level: usize,
-            text: Text,
-        },
-        Paragraph {
-            paragraph_type: ParagraphType,
-            text: Text,
-        },
-        Formula(String),
-        InsertPage(PathBuf),
-        InsertContent {
-            path: PathBuf,
-            caption: Text,
-        },
-        Enumerate {
-            enumerate_type: EnumerateType,
-            data: Vec<Self>,
-        },
-        Code {
-            label: String,
-            code: String,
-        },
+        Title(Title),
+        Paragraph(Paragraph),
+        Formula(Formula),
+        InsertPage(InsertPage),
+        InsertContent(InsertContent),
+        Enumerate(Enumerate<Self>),
+        Code(Code),
         PhantomNewLine,
     },
     IntoParse<Error>::parse(parser: impl Fn(&String) -> ParseResult<PreParseData, Error> + Clone),
@@ -130,3 +151,20 @@ pre_final_enums!(
         },
     }
 );
+
+impl<T2, T: IntoParse<T2, Error>> IntoParse<Enumerate<T2>, Error> for Enumerate<T> {
+    fn parse(
+        self,
+        parser: impl Fn(&String) -> ParseResult<PreParseData, Error> + Clone,
+    ) -> Result<(Enumerate<T2>, Vec<Error>), Vec<Error>> {
+        self.data.parse(parser).map(|(data, err)| {
+            (
+                Enumerate {
+                    enumerate_type: self.enumerate_type,
+                    data,
+                },
+                err,
+            )
+        })
+    }
+}

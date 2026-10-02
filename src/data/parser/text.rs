@@ -1,10 +1,9 @@
-use chumsky::prelude::*;
-
 use crate::data::{
     Text, TextVariants,
     error::{Error, Expected},
     parser::formula::inline_formula,
 };
+use chumsky::prelude::*;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum TextExpected {
@@ -21,8 +20,7 @@ pub enum TextExpected {
     Text,
 }
 
-fn base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error>> + Clone
-{
+fn base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error>> + Clone {
     choice((
         just("\\*")
             .to("*")

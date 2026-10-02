@@ -1,10 +1,9 @@
-use chumsky::prelude::*;
-
 use crate::data::{
-    EnumerateType, ParamType, ParamValues, PreParseData,
+    Enumerate, EnumerateType, ParamType, ParamValues, PreParseData,
     error::{Block, BlockConvertor, Error, ErrorEditor, Expected},
     parser::params::{ParamsExpected, params, unknown_variables},
 };
+use chumsky::prelude::*;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum EnumerateExpected {
@@ -106,16 +105,18 @@ pub fn enumerate<'src>() -> impl Parser<'src, &'src str, PreParseData, extra::Er
                 .into_iter()
                 .for_each(|err| emitter.emit(err));
 
-            PreParseData::Enumerate {
+            PreParseData::Enumerate(Enumerate {
                 enumerate_type,
                 data,
-            }
+            })
         })
         .map_err(|err| err.set_target_block(Block::Enumerate(None)))
 }
 
 #[cfg(test)]
 mod test {
+    use crate::data::Enumerate;
+
     use super::*;
 
     #[test]
@@ -126,7 +127,7 @@ mod test {
 
         assert_eq!(
             enumerate().parse(input).into_result(),
-            Ok(PreParseData::Enumerate {
+            Ok(PreParseData::Enumerate(Enumerate {
                 enumerate_type: EnumerateType::Default,
                 data: vec![
                     PreParseData::Pre {
@@ -151,7 +152,7 @@ mod test {
                         },
                     }
                 ]
-            })
+            }))
         );
     }
 
@@ -164,7 +165,7 @@ mod test {
 
         assert_eq!(
             enumerate().parse(input1).into_result(),
-            Ok(PreParseData::Enumerate {
+            Ok(PreParseData::Enumerate(Enumerate {
                 enumerate_type: EnumerateType::Mark,
                 data: vec![
                     PreParseData::Pre {
@@ -189,7 +190,7 @@ mod test {
                         },
                     }
                 ]
-            })
+            }))
         );
 
         let input2 = r#"{type = gebe}
@@ -199,7 +200,7 @@ mod test {
 
         assert_eq!(
             enumerate().parse(input2).into_result(),
-            Ok(PreParseData::Enumerate {
+            Ok(PreParseData::Enumerate(Enumerate {
                 enumerate_type: EnumerateType::Other("gebe".into()),
                 data: vec![
                     PreParseData::Pre {
@@ -224,7 +225,7 @@ mod test {
                         },
                     }
                 ]
-            })
+            }))
         );
     }
 
@@ -241,7 +242,7 @@ mod test {
 
         assert_eq!(
             enumerate().parse(input).into_result(),
-            Ok(PreParseData::Enumerate {
+            Ok(PreParseData::Enumerate(Enumerate {
                 enumerate_type: EnumerateType::Default,
                 data: vec![
                     PreParseData::Pre {
@@ -275,7 +276,7 @@ mod test {
                         },
                     }
                 ]
-            })
+            }))
         );
     }
 
@@ -294,7 +295,7 @@ mod test {
 
         assert_eq!(
             enumerate().parse(input).into_result(),
-            Ok(PreParseData::Enumerate {
+            Ok(PreParseData::Enumerate(Enumerate {
                 enumerate_type: EnumerateType::Default,
                 data: vec![
                     PreParseData::Pre {
@@ -328,7 +329,7 @@ mod test {
                         },
                     }
                 ]
-            })
+            }))
         );
     }
 }

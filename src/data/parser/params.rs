@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-
-use chumsky::{IterParser, Parser, extra, prelude::*, span::Spanned, text};
-
 use crate::data::{
     ParamData, ParamType, ParamValues, Params,
     error::{Error, Expected},
 };
+use chumsky::{IterParser, Parser, extra, prelude::*, span::Spanned, text};
+use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum ParamsExpected {

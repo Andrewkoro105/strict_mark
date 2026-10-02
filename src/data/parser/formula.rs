@@ -1,9 +1,8 @@
-use chumsky::prelude::*;
-
 use crate::data::{
-    PreParseData, TextVariants,
+    Formula, PreParseData, TextVariants,
     error::{Block, Error, Expected},
 };
+use chumsky::prelude::*;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum FormulaExpected {
@@ -37,15 +36,15 @@ pub fn inline_formula<'src>()
 
 pub fn formula<'src>() -> impl Parser<'src, &'src str, PreParseData, extra::Err<Error>> + Clone {
     formula_str(2)
-        .map(PreParseData::Formula)
+        .map(|formula| PreParseData::Formula(Formula { formula }))
         .map_err(|err| err.set_target_block(Block::Formula))
 }
 
 #[cfg(test)]
 mod tests {
-    use chumsky::label::LabelError;
     pub use super::*;
-    
+    use chumsky::label::LabelError;
+
     mod formula_str {
         use super::*;
 
@@ -73,7 +72,9 @@ mod tests {
         let input = "$$ab\\$oba$$";
         assert_eq!(
             formula().parse(input).into_result(),
-            Ok(PreParseData::Formula("ab$oba".to_string()))
+            Ok(PreParseData::Formula(Formula {
+                formula: "ab$oba".to_string()
+            }))
         );
     }
 
@@ -82,11 +83,17 @@ mod tests {
         let input = "$$ab\\$o$ba";
         assert_eq!(
             formula().parse(input).into_result(),
-            Err(vec![Error::expected_found(
-                vec![Expected::Formula(FormulaExpected::Text), Expected::Formula(FormulaExpected::Delimiter(2))],
-                None,
-                (10..10).into()
-            ).set_target_block(Block::Formula)])
+            Err(vec![
+                Error::expected_found(
+                    vec![
+                        Expected::Formula(FormulaExpected::Text),
+                        Expected::Formula(FormulaExpected::Delimiter(2))
+                    ],
+                    None,
+                    (10..10).into()
+                )
+                .set_target_block(Block::Formula)
+            ])
         );
     }
 }

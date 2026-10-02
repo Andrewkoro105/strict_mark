@@ -1,16 +1,14 @@
-use chumsky::prelude::*;
-
 use crate::data::{
-    ParagraphType, ParamType, ParamValues, PreParseData, Text, TextVariants,
+    Paragraph, ParagraphType, ParamType, ParamValues, PreParseData, Text, TextVariants,
     error::{Block, Error, Expected},
     parser::{
         params::{ParamsExpected, params, unknown_variables},
         text::text,
     },
 };
+use chumsky::prelude::*;
 
-fn base_paragraph<'src>()
--> impl Parser<'src, &'src str, Text, extra::Err<Error>> + Clone {
+fn base_paragraph<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error>> + Clone {
     text()
         .then(just("\n").to(TextVariants::PhantomNewLine).or_not())
         .map(|(mut text, new_line)| {
@@ -25,8 +23,7 @@ fn base_paragraph<'src>()
         .map(|texts| texts.into_iter().flatten().collect())
 }
 
-pub fn paragraph<'src>()
--> impl Parser<'src, &'src str, PreParseData, extra::Err<Error>> + Clone {
+pub fn paragraph<'src>() -> impl Parser<'src, &'src str, PreParseData, extra::Err<Error>> + Clone {
     params()
         .then_ignore(just("\n"))
         .or_not()
@@ -62,16 +59,18 @@ pub fn paragraph<'src>()
                 .into_iter()
                 .for_each(|err| emitter.emit(err));
 
-            PreParseData::Paragraph {
+            PreParseData::Paragraph(Paragraph {
                 paragraph_type,
                 text,
-            }
+            })
         })
         .map_err(|err| err.set_target_block(Block::Paragraph))
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::data::Paragraph;
+
     pub use super::*;
 
     #[test]
@@ -79,7 +78,7 @@ mod tests {
         let test_str = "bib\\* bab **bub**__beb s sis\\___ff~~rr~~ `123 45` *\\** @(ss 1):(ss 1.1)";
         assert_eq!(
             paragraph().parse(test_str).into_result(),
-            Ok(PreParseData::Paragraph {
+            Ok(PreParseData::Paragraph(Paragraph {
                 paragraph_type: ParagraphType::default(),
                 text: vec![
                     TextVariants::Text("bib* bab ".to_string()),
@@ -94,7 +93,7 @@ mod tests {
                     TextVariants::Text(" ".to_string()),
                     TextVariants::Link(vec!["ss 1".to_string(), "ss 1.1".to_string()])
                 ]
-            })
+            }))
         );
     }
 
@@ -103,14 +102,14 @@ mod tests {
         let test_str = "bub bab \n bib beb";
         assert_eq!(
             paragraph().parse(test_str).into_result(),
-            Ok(PreParseData::Paragraph {
+            Ok(PreParseData::Paragraph(Paragraph {
                 paragraph_type: ParagraphType::default(),
                 text: vec![
                     TextVariants::Text("bub bab ".to_string()),
                     TextVariants::PhantomNewLine,
                     TextVariants::Text(" bib beb".to_string()),
                 ]
-            })
+            }))
         );
     }
 
@@ -119,23 +118,19 @@ mod tests {
         let test_str = "{type = footnote}\nbub bab";
         assert_eq!(
             paragraph().parse(test_str).into_result(),
-            Ok(PreParseData::Paragraph {
+            Ok(PreParseData::Paragraph(Paragraph {
                 paragraph_type: ParagraphType::Footnote,
-                text: vec![
-                    TextVariants::Text("bub bab".to_string()),
-                ]
-            })
+                text: vec![TextVariants::Text("bub bab".to_string()),]
+            }))
         );
 
         let test_str = "{type = fuf}\nbub bab";
         assert_eq!(
             paragraph().parse(test_str).into_result(),
-            Ok(PreParseData::Paragraph {
+            Ok(PreParseData::Paragraph(Paragraph {
                 paragraph_type: ParagraphType::Other("fuf".into()),
-                text: vec![
-                    TextVariants::Text("bub bab".to_string()),
-                ]
-            })
+                text: vec![TextVariants::Text("bub bab".to_string()),]
+            }))
         );
     }
 }

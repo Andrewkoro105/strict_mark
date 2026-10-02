@@ -1,7 +1,8 @@
 # Compiler
 - [X] sm -> ast
-- [ ] ast -> docx
-- [ ] docx -> pdf
+- [ ] ast -> rdocx_decl
+- [X] rdocx_decl -> rdocx
+- [ ] rdocx -> file
 ## Parser
 - [X] Comments
 - [X] Enumerate

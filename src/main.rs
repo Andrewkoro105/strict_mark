@@ -1,11 +1,17 @@
+pub mod compiler;
 pub mod data;
-use std::{fs::File, io::Read, path::PathBuf};
+pub mod rdocx_decl;
 
-use crate::data::{IntoParse, error::ErrorEditor};
+use crate::compiler::lua::LuaStyle;
+use crate::compiler::paragraph::Paragraph;
+use crate::compiler::title::{self, Title};
+use crate::compiler::{Compiler, paragraph};
 use crate::data::parser::strict_mark;
+use crate::data::{IntoParse, error::ErrorEditor};
 use chumsky::Parser as ChumskyParser;
 use clap::Parser;
 use data::PreParseData;
+use std::{fs::File, io::Read, path::PathBuf};
 use tracing::{Level, error, info, warn};
 use tracing_subscriber::{filter::Targets, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -13,6 +19,10 @@ use tracing_subscriber::{filter::Targets, fmt, layer::SubscriberExt, util::Subsc
 #[command(name = "Strict mark")]
 #[command(long_about = None)]
 struct Cli {
+    // #[arg(short, long)]
+    // style: PathBuf,
+    // #[arg(short, long)]
+    // output_path: Option<PathBuf>,
     #[arg(last = true)]
     path: PathBuf,
 }
@@ -51,7 +61,7 @@ fn main() {
         Ok((ast, errs)) => {
             if !errs.is_empty() {
                 warn!(
-                    "Error:\n{}\n",
+                    "Parse error:\n{}\n",
                     errs.iter()
                         .map(|err| format!("\t{:?}", err))
                         .collect::<Vec<_>>()
@@ -59,6 +69,36 @@ fn main() {
                 );
             }
             info!("Result:\n{}", serde_json::to_string_pretty(&ast).unwrap());
+
+            let compiler = Compiler {
+                paragraph: vec![Paragraph {
+                    data: paragraph::Data {
+                        paragraph_type: data::ParagraphType::Default,
+                    },
+                    style: LuaStyle::Base(paragraph::Style {
+                        rdocx_style: rdocx_decl::paragraph::Style::default(),
+                    }),
+                }],
+                titles: vec![Title {
+                    data: title::Data { level: 1 },
+                    style: LuaStyle::Base(title::Style {
+                        rdocx_style: rdocx_decl::paragraph::Style::default()
+                            .alignment(Some(rdocx_decl::paragraph::Alignment::Center)),
+                    }),
+                }],
+            };
+
+            let (result, errs) = compiler.compile(&ast);
+            result.to_rdocx().save("test.docx").unwrap();
+            if !errs.is_empty() {
+                warn!(
+                    "Compile error:\n{}\n",
+                    errs.iter()
+                        .map(|err| format!("\t{:?}", err))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                );
+            }
         }
         Err(errs) => {
             error!(
