@@ -4,7 +4,6 @@ use crate::rdocx_decl::{
 };
 use rdocx::Paragraph;
 use serde::{Deserialize, Serialize};
-use tracing::debug;
 
 //todo: This element is taken from rdocs; later, it needs to be changed in rdocs itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

@@ -1,9 +1,7 @@
 use crate::{
-    compiler::{Base, Compile, text::Text},
+    compiler::{BaseCompiler, Compile, text::Text},
     data::{self, ParagraphType},
-    rdocx_decl::{
-        self,
-    },
+    rdocx_decl::{self},
 };
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +15,7 @@ pub struct Data {
     pub paragraph_type: ParagraphType,
 }
 
-pub type Paragraph = Base<Style, Data>;
+pub type Paragraph = BaseCompiler<Style, Data>;
 
 impl Compile<data::Paragraph> for Paragraph {
     fn compile(
@@ -25,7 +23,12 @@ impl Compile<data::Paragraph> for Paragraph {
         ast: &data::Paragraph,
         cash: &mut super::Cash,
     ) -> Option<Vec<rdocx_decl::document::Content>> {
-        (ast.paragraph_type == self.data.paragraph_type).then(|| {
+        self
+            .data
+            .as_ref()
+            .map(|data| ast.paragraph_type == data.paragraph_type)
+            .unwrap_or(true)
+        .then(|| {
             self.style.compile(ast, &self.data).unwrap_or_else(|style| {
                 vec![
                     rdocx_decl::paragraph::Paragraph {

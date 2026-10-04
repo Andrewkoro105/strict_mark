@@ -6,7 +6,10 @@ pub mod title;
 use crate::{
     compiler::{lua::LuaStyle, paragraph::Paragraph, title::Title},
     data::{self, ParseData},
-    rdocx_decl::{self, run, utils::{Color, Length}},
+    rdocx_decl::{
+        self, run,
+        utils::{Color, Length},
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -23,9 +26,9 @@ pub(self) trait Compile<T, R = Option<Vec<rdocx_decl::document::Content>>> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Base<S, D> {
+pub struct BaseCompiler<S, D> {
     pub style: LuaStyle<S>,
-    pub data: D,
+    pub data: Option<D>,
 }
 
 #[derive(Debug, Clone)]
@@ -49,26 +52,66 @@ impl Default for Compiler {
     fn default() -> Self {
         Self {
             paragraph: vec![Paragraph {
-                data: paragraph::Data {
+                data: Some(paragraph::Data {
                     paragraph_type: data::ParagraphType::Default,
-                },
+                }),
                 style: LuaStyle::Base(paragraph::Style {
                     rdocx_style: rdocx_decl::paragraph::Style::default(),
                 }),
             }],
-            titles: vec![Title {
-                data: title::Data { level: 1 },
-                style: LuaStyle::Base(title::Style {
-                    rdocx_style: rdocx_decl::paragraph::Style::default()
-                        .alignment(Some(rdocx_decl::paragraph::Alignment::Center))
-                        .borders(Some(rdocx_decl::utils::border::Borders::All {
-                            style: rdocx_decl::utils::border::BorderStyle::Dashed,
-                            size: rdocx_decl::utils::Length::Pt(1.),
-                            color: Color::Hex("#000000".into()),
-                        }))
-                        .base_run(Some(run::Style::default().size(Some(Length::Pt(20.))))),
-                }),
-            }],
+            titles: vec![
+                Title {
+                    data: Some(title::Data { level: 1 }),
+                    style: LuaStyle::Base(title::Style {
+                        rdocx_style: rdocx_decl::paragraph::Style::default()
+                            .alignment(Some(rdocx_decl::paragraph::Alignment::Center))
+                            .borders(Some(rdocx_decl::utils::border::Borders::All {
+                                style: rdocx_decl::utils::border::BorderStyle::Dashed,
+                                size: rdocx_decl::utils::Length::Pt(1.),
+                                color: Color::Hex("#000000".into()),
+                            }))
+                            .base_run(Some(
+                                run::Style::default()
+                                    .size(Some(Length::Pt(20.)))
+                                    .bold(Some(true)),
+                            )),
+                    }),
+                },
+                Title {
+                    data: Some(title::Data { level: 2 }),
+                    style: LuaStyle::Base(title::Style {
+                        rdocx_style: rdocx_decl::paragraph::Style::default()
+                            .alignment(Some(rdocx_decl::paragraph::Alignment::Center))
+                            .base_run(Some(
+                                run::Style::default()
+                                    .size(Some(Length::Pt(20.)))
+                                    .bold(Some(true)),
+                            )),
+                    }),
+                },
+                Title {
+                    data: Some(title::Data { level: 3 }),
+                    style: LuaStyle::Base(title::Style {
+                        rdocx_style: rdocx_decl::paragraph::Style::default()
+                            .base_run(Some(
+                                run::Style::default()
+                                    .size(Some(Length::Pt(15.)))
+                                    .bold(Some(true)),
+                            )),
+                    }),
+                },
+                Title {
+                    data: None,
+                    style: LuaStyle::Base(title::Style {
+                        rdocx_style: rdocx_decl::paragraph::Style::default()
+                            .base_run(Some(
+                                run::Style::default()
+                                    .size(Some(Length::Pt(12.)))
+                                    .bold(Some(true)),
+                            )),
+                    }),
+                },
+            ],
         }
     }
 }

@@ -1,3 +1,5 @@
 /target
 *.docx*
+*.pdf*
+*.yaml*
 tmp

@@ -8,6 +8,7 @@ use crate::data::{IntoParse, error::ErrorEditor};
 use chumsky::Parser as ChumskyParser;
 use clap::Parser;
 use data::PreParseData;
+use std::time::Instant;
 use std::{fs::File, io::Read, path::PathBuf};
 use tracing::{Level, debug, error, info, warn};
 use tracing_subscriber::{filter::Targets, fmt, layer::SubscriberExt, util::SubscriberInitExt};
@@ -50,6 +51,7 @@ impl From<BaseCli> for Cli {
 }
 
 fn main() {
+    let start = Instant::now();
     let cli = Cli::from(BaseCli::parse());
 
     let filter = Targets::new()
@@ -124,4 +126,6 @@ fn main() {
             );
         }
     }
+
+    info!("end: {:?}", start.elapsed());
 }
