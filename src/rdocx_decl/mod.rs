@@ -3,9 +3,14 @@ pub mod utils;
 pub mod document;
 pub mod paragraph;
 pub mod run;
+pub mod list_level;
+
+use std::collections::HashMap;
 
 #[derive(Debug, Default)]
-pub struct Cash {}
+pub struct Cash {
+    pub lists: HashMap<String, u32>,
+}
 
 pub trait ToRdocx<D, T = ()> {
     fn to_rdocx(&self, doc: &mut D, data: T, cash: &mut Cash);
@@ -14,11 +19,12 @@ pub trait ToRdocx<D, T = ()> {
 #[cfg(test)]
 mod test {
     use crate::rdocx_decl::{
-        document::Document,
+        document::{self, Document},
         paragraph::{self, Paragraph},
         run::{self, Run},
         utils::Length,
     };
+    use rdocx::ListLevel;
     use std::{fs, path::Path};
 
     #[test]
@@ -92,9 +98,27 @@ mod test {
                 }
                 .into(),
             ],
+            stile: document::Stile::default()
         }
         .to_rdocx()
         .save(dir.join("test.docx"))
         .unwrap();
+    }
+
+    #[test]
+    fn list() {
+        let dir = Path::new("./tmp/test/");
+        fs::create_dir_all(dir).unwrap();
+
+        let mut doc = rdocx::Document::new();
+        let num_id = doc.add_list_definition(&[ListLevel::bullet(), ListLevel::decimal().start(3)]);
+        doc.add_paragraph("first bullet").set_numbering(num_id, 0);
+        doc.add_paragraph("third decimal").set_numbering(num_id, 1);
+        doc.add_paragraph(
+            "third decimal, third decimal, third decimal, third decimal,third decimal, ",
+        );
+
+        doc.add_paragraph("first bullet").set_numbering(num_id, 0);
+        doc.add_paragraph("third decimal").set_numbering(num_id, 1);
     }
 }

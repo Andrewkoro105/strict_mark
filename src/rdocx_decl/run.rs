@@ -5,7 +5,7 @@ use crate::rdocx_decl::{
 use rdocx::Paragraph;
 use serde::{Deserialize, Serialize};
 
-//todo: This element is taken from rdocs; later, it needs to be changed in rdocs itself.
+//todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum UnderlineStyle {
     None,

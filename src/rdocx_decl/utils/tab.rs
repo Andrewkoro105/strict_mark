@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::rdocx_decl::utils::Length;
 
-//todo: This element is taken from rdocs; later, it needs to be changed in rdocs itself.
+//todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TabAlignment {
     Left,
@@ -11,7 +11,7 @@ pub enum TabAlignment {
     Decimal,
 }
 
-//todo: This element is taken from rdocs; later, it needs to be changed in rdocs itself.
+//todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TabLeader {
     None,

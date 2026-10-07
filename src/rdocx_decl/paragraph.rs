@@ -1,12 +1,13 @@
 use crate::rdocx_decl::{
     Cash, ToRdocx,
+    list_level::{ListLevel, base_list_style_name},
     run::{self, Run},
     utils::{Color, Length, SectionBreak, SectionPageSize, border::Borders, tab::TabStop},
 };
 use rdocx::Document;
 use serde::{Deserialize, Serialize};
 
-//todo: This element is taken from rdocs; later, it needs to be changed in rdocs itself.
+//todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Alignment {
     Left,
@@ -19,6 +20,19 @@ pub enum Alignment {
 pub enum LineSpacing {
     Length(Length),
     Multiple(f64),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ParagraphListLevelStyle {
+    Name(String),
+    Base,
+    Style(Vec<ListLevel>),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParagraphListLevel {
+    stile: ParagraphListLevelStyle,
+    level: u32,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -40,11 +54,12 @@ pub struct Style {
     pub outline_level: Option<u32>,
     pub section_break: Option<SectionBreak>,
     pub section_page_size: Option<SectionPageSize>,
+    pub list_level: Option<ParagraphListLevel>,
 
     pub base_run: Option<run::Style>,
 }
 
-to_rdocx_static_dispatch!{
+to_rdocx_static_dispatch! {
     {#[derive(Debug, Clone, Serialize, Deserialize)]},
     impl{'p},
     <{D: rdocx::Paragraph<'p>}, {T: &Option<run::Style>}>,
@@ -62,6 +77,30 @@ pub struct Paragraph {
 
 impl ToRdocx<Document> for Paragraph {
     fn to_rdocx(&self, doc: &mut Document, _data: (), cash: &mut Cash) {
+        let list_level = self.style.list_level.as_ref().map(|list_level| {
+            (
+                match &list_level.stile {
+                    ParagraphListLevelStyle::Name(name) => cash
+                        .lists
+                        .get(name)
+                        .cloned()
+                        .unwrap_or(cash.lists.get(&base_list_style_name()).cloned().unwrap()),
+                    ParagraphListLevelStyle::Base => {
+                        cash.lists.get(&base_list_style_name()).cloned().unwrap()
+                    }
+                    ParagraphListLevelStyle::Style(list_level) => doc.add_list_definition(
+                        &list_level
+                            .iter()
+                            .cloned()
+                            .map(Into::into)
+                            .collect::<Vec<_>>()
+                            .as_slice(),
+                    ),
+                },
+                list_level.level,
+            )
+        });
+
         let mut paragraph = doc.add_paragraph("");
         self.contents.iter().for_each(|content| {
             content.to_rdocx(&mut paragraph, &self.style.base_run, cash);
@@ -139,6 +178,9 @@ impl ToRdocx<Document> for Paragraph {
             }
             None => {}
         }
+
+        //todo: Add error handling.
+        paragraph.set_numbering_value(list_level);
     }
 }
 

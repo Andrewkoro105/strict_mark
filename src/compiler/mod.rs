@@ -7,8 +7,7 @@ use crate::{
     compiler::{lua::LuaStyle, paragraph::Paragraph, title::Title},
     data::{self, ParseData},
     rdocx_decl::{
-        self, run,
-        utils::{Color, Length},
+        self, document, run, utils::{Color, Length}
     },
 };
 use serde::{Deserialize, Serialize};
@@ -44,6 +43,7 @@ pub enum Integration {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Compiler {
+    pub doc_style: document::Stile,
     pub titles: Vec<Title>,
     pub paragraph: Vec<Paragraph>,
 }
@@ -51,6 +51,7 @@ pub struct Compiler {
 impl Default for Compiler {
     fn default() -> Self {
         Self {
+            doc_style: document::Stile::default(),
             paragraph: vec![Paragraph {
                 data: Some(paragraph::Data {
                     paragraph_type: data::ParagraphType::Default,
@@ -175,6 +176,6 @@ impl Compiler {
             ParseData,
             (Vec<rdocx_decl::document::Content>, Vec<Error>),
         >>::compile(self, ast, &mut Cash::default());
-        (rdocx_decl::document::Document { contents }, errs)
+        (rdocx_decl::document::Document { contents, stile: self.doc_style.clone() }, errs)
     }
 }
