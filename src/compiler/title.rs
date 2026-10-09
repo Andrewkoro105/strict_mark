@@ -1,5 +1,5 @@
 use crate::{
-    compiler::{BaseCompiler, Compile, text::Text},
+    compiler::{BaseCompiler, BaseCompilerDataRef, Compile, Ctx, text::Text},
     data, rdocx_decl,
 };
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ pub struct Style {
     pub rdocx_style: rdocx_decl::paragraph::Style,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Data {
     pub level: usize,
 }
@@ -20,26 +20,30 @@ impl Compile<data::Title> for Title {
     fn compile(
         &self,
         ast: &data::Title,
+        ctx: &Ctx,
         cash: &mut super::Cash,
     ) -> Option<Vec<rdocx_decl::document::Content>> {
-        self.data
-            .as_ref()
-            .map(|data| ast.level == data.level)
-            .unwrap_or(true)
-            .then(|| {
-                self.style.compile(ast, &self.data).unwrap_or_else(|style| {
-                    vec![
-                        rdocx_decl::paragraph::Paragraph {
-                            contents: ast
-                                .text
-                                .iter()
-                                .map(|text| (Text).compile(text, cash).into())
-                                .collect(),
-                            style: style.rdocx_style,
-                        }
-                        .into(),
-                    ]
-                })
+        BaseCompilerDataRef::new(
+            &Data {
+                level: ast.level,
+            },
+            &ctx,
+        )
+        .eq(&self.data)
+        .then(|| {
+            self.style.compile(ast, &self.data).unwrap_or_else(|style| {
+                vec![
+                    rdocx_decl::paragraph::Paragraph {
+                        contents: ast
+                            .text
+                            .iter()
+                            .map(|text| (Text).compile(text, ctx, cash).into())
+                            .collect(),
+                        style: style.rdocx_style,
+                    }
+                    .into(),
+                ]
             })
+        })
     }
 }

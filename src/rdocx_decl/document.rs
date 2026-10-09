@@ -13,6 +13,7 @@ to_rdocx_static_dispatch! {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Stile {
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     lists: HashMap<String, Vec<ListLevel>>,
 }
 

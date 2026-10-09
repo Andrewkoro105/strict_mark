@@ -1,9 +1,9 @@
-use crate::{compiler::Compile, data::TextVariants, rdocx_decl::run::{self, Run}};
+use crate::{compiler::{Compile, Ctx}, data::TextVariants, rdocx_decl::run::{self, Run}};
 
 pub struct Text;
 
 impl Compile<TextVariants, Run> for Text {
-    fn compile(&self, ast: &TextVariants, _cash: &mut super::Cash) -> Run {
+    fn compile(&self, ast: &TextVariants, _ctx: &Ctx, _cash: &mut super::Cash) -> Run {
         match ast {
             TextVariants::PhantomNewLine => Run {
                 contents: vec![run::Content::Text("".into())],

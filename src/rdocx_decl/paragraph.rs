@@ -22,40 +22,60 @@ pub enum LineSpacing {
     Multiple(f64),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub enum ParagraphListLevelStyle {
     Name(String),
+    #[default]
     Base,
     Style(Vec<ListLevel>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ParagraphListLevel {
-    stile: ParagraphListLevelStyle,
-    level: u32,
+    pub stile: ParagraphListLevelStyle,
+    pub level: u32,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Style {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub alignment: Option<Alignment>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub space_before: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub space_after: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub indent_left: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub indent_right: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub signed_first_line_indent: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub keep_with_next: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub keep_together: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub page_break_before: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub widow_control: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub line_spacing: Option<LineSpacing>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub shading: Option<Color>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub borders: Option<Borders>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tab_stops: Option<Vec<TabStop>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub outline_level: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub section_break: Option<SectionBreak>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub section_page_size: Option<SectionPageSize>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub list_level: Option<ParagraphListLevel>,
 
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub base_run: Option<run::Style>,
 }
 

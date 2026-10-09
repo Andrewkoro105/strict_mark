@@ -100,7 +100,7 @@ fn main() {
             let compiler = Compiler::load(&cli.style);
 
             let (rdocx_decl_ast, errs) = compiler.compile(&ast);
-            debug!("Compile result:\n{:#?}", rdocx_decl_ast);
+            debug!("Compile result:\n{}", serde_saphyr::to_string(&rdocx_decl_ast).unwrap());
 
             rdocx_decl_ast.to_rdocx().save(&cli.output_path).unwrap();
 

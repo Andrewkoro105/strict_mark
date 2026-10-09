@@ -20,24 +20,43 @@ pub enum UnderlineStyle {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Style {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bold: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub italic: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub underline_style: Option<UnderlineStyle>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub size: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub font_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub language: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<Color>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub highlight: Option<Color>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub shading: Option<Color>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub strike: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub double_strike: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub all_caps: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub small_caps: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub superscript: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subscript: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub character_spacing: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub width_scale: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub position: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hidden: Option<bool>,
 }
 

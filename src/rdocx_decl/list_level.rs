@@ -90,16 +90,27 @@ pub enum ListLevelRestart {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListLevel {
     format: ListNumberFormat,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     start: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     level_text: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     suffix: Option<ListLevelSuffix>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     alignment: Option<Alignment>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     indent_left: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     indent_hanging: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     indent_first_line: Option<Length>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     legal_numbering: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     restart: Option<ListLevelRestart>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     template_code: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     tentative: Option<bool>,
 }
 
