@@ -21,7 +21,7 @@ mod test {
     use crate::rdocx_decl::{
         document::{self, Document},
         paragraph::{self, Paragraph},
-        run::{self, Run},
+        run::{self, Caps, Run},
         utils::Length,
     };
     use rdocx::ListLevel;
@@ -76,7 +76,7 @@ mod test {
                         .into(),
                         Run {
                             contents: vec![run::Content::Text("gagi ".into())],
-                            style: run::Style::default().all_caps(Some(true)),
+                            style: run::Style::default().caps(Some(Caps::All)),
                         }
                         .into(),
                         Run {

@@ -18,6 +18,18 @@ pub enum UnderlineStyle {
     Words,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Caps {
+    All,
+    Small,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum VerticalAlignment {
+    Subscript,
+    Superscript,
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Style {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -43,13 +55,9 @@ pub struct Style {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub double_strike: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub all_caps: Option<bool>,
+    pub caps: Option<Caps>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub small_caps: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub superscript: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub subscript: Option<bool>,
+    pub vertical_alignment: Option<VerticalAlignment>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub character_spacing: Option<Length>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -123,20 +131,16 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
             run.set_double_strike(double_strike);
         }
 
-        if let Some(all_caps) = style.all_caps {
-            run.set_all_caps(all_caps);
+        match style.caps {
+            Some(Caps::All) => run.set_all_caps(true),
+            Some(Caps::Small) => run.set_small_caps(true),
+            None => {},
         }
 
-        if let Some(small_caps) = style.small_caps {
-            run.set_small_caps(small_caps);
-        }
-
-        if style.superscript == Some(true) {
-            run.set_superscript();
-        }
-
-        if style.subscript == Some(true) {
-            run.set_subscript();
+        match style.vertical_alignment {
+            Some(VerticalAlignment::Subscript) => run.set_subscript(),
+            Some(VerticalAlignment::Superscript) => run.set_superscript(),
+            None => todo!(),
         }
 
         if let Some(character_spacing) = style.character_spacing {
@@ -185,10 +189,8 @@ impl Style {
         self.shading = self.shading.or(base.shading);
         self.strike = self.strike.or(base.strike);
         self.double_strike = self.double_strike.or(base.double_strike);
-        self.all_caps = self.all_caps.or(base.all_caps);
-        self.small_caps = self.small_caps.or(base.small_caps);
-        self.superscript = self.superscript.or(base.superscript);
-        self.subscript = self.subscript.or(base.subscript);
+        self.caps = self.caps.or(base.caps);
+        self.vertical_alignment = self.vertical_alignment.or(base.vertical_alignment);
         self.character_spacing = self.character_spacing.or(base.character_spacing);
         self.width_scale = self.width_scale.or(base.width_scale);
         self.position = self.position.or(base.position);
@@ -252,23 +254,13 @@ impl Style {
         self
     }
 
-    pub fn all_caps(mut self, all_caps: Option<bool>) -> Self {
-        self.all_caps = all_caps;
+    pub fn caps(mut self, caps: Option<Caps>) -> Self {
+        self.caps = caps;
         self
     }
 
-    pub fn small_caps(mut self, small_caps: Option<bool>) -> Self {
-        self.small_caps = small_caps;
-        self
-    }
-
-    pub fn superscript(mut self, superscript: Option<bool>) -> Self {
-        self.superscript = superscript;
-        self
-    }
-
-    pub fn subscript(mut self, subscript: Option<bool>) -> Self {
-        self.subscript = subscript;
+    pub fn vertical_alignment(mut self, vertical_alignment: Option<VerticalAlignment>) -> Self {
+        self.vertical_alignment = vertical_alignment;
         self
     }
 
