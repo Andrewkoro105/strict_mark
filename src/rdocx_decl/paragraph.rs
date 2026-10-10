@@ -1,8 +1,14 @@
+use std::collections::HashMap;
+
 use crate::rdocx_decl::{
     Cash, ToRdocx,
     list_level::{ListLevel, base_list_style_name},
     run::{self, Run},
-    utils::{Color, Length, SectionBreak, SectionPageSize, border::Borders, tab::TabStop},
+    utils::{
+        Color, Length, SectionBreak, SectionPageSize,
+        border::{self, Border},
+        tab::TabStop,
+    },
 };
 use rdocx::Document;
 use serde::{Deserialize, Serialize};
@@ -36,6 +42,18 @@ pub struct ParagraphListLevel {
     pub level: u32,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ShadingPattern {
+    Other(String),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Shading {
+    pattern: ShadingPattern,
+    fill_color: Color,
+    color: Color,
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Style {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -61,9 +79,9 @@ pub struct Style {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub line_spacing: Option<LineSpacing>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub shading: Option<Color>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub borders: Option<Borders>,
+    pub shading: Option<Shading>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub borders: HashMap<border::Edge, Border>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tab_stops: Option<Vec<TabStop>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -145,23 +163,28 @@ impl ToRdocx<Document> for Paragraph {
             Some(LineSpacing::Multiple(multiple)) => paragraph.set_line_spacing_multiple(multiple),
             None => {}
         }
-        if let Some(shading) = &self.style.shading {
-            paragraph.set_shading(&shading.to_string());
-        }
-        match &self.style.borders {
-            Some(Borders::All { style, size, color }) => paragraph.set_border_all(
-                style.clone().into(),
-                size.into_rdocx().to_pt().floor() as u32,
-                &color.to_string(),
-            ),
-            Some(Borders::Bottom(border)) => paragraph.set_border_bottom_with_space(
-                border.style.into(),
-                border.size.into_rdocx().to_pt().floor() as u32,
-                border.space_points,
-                &border.color.to_string(),
-            ),
-            None => {}
-        }
+        let shading = self.style.shading.as_ref().map(|shading| {
+            (
+                shading.pattern.to_string(),
+                shading.fill_color.to_string(),
+                shading.color.to_string(),
+            )
+        });
+        paragraph.set_shading_value(
+            shading
+                .as_ref()
+                .map(|(a, b, c)| (a.as_str(), b.as_str(), c.as_str())),
+        );
+        self.style.borders.iter().for_each(|(edge, border)| {
+            paragraph.set_border_value(
+                (*edge).into(),
+                Some((
+                    border.style.into(),
+                    border.size.into_rdocx().to_pt() as u32,
+                    &border.color.to_string(),
+                )),
+            );
+        });
         self.style
             .tab_stops
             .iter()
@@ -183,9 +206,7 @@ impl ToRdocx<Document> for Paragraph {
                 ),
             });
 
-        if let Some(outline_level) = self.style.outline_level {
-            paragraph.set_outline_level(outline_level);
-        }
+        paragraph.set_outline_level_value(self.style.outline_level);
 
         if let Some(section_break) = self.style.section_break {
             paragraph.set_section_break(section_break.into());
@@ -211,6 +232,14 @@ impl Into<rdocx::Alignment> for Alignment {
             Alignment::Center => rdocx::Alignment::Center,
             Alignment::Right => rdocx::Alignment::Right,
             Alignment::Justify => rdocx::Alignment::Justify,
+        }
+    }
+}
+
+impl ToString for ShadingPattern {
+    fn to_string(&self) -> String {
+        match self {
+            ShadingPattern::Other(other) => other.clone(),
         }
     }
 }
@@ -271,12 +300,12 @@ impl Style {
         self
     }
 
-    pub fn shading(mut self, shading: Option<Color>) -> Self {
+    pub fn shading(mut self, shading: Option<Shading>) -> Self {
         self.shading = shading;
         self
     }
 
-    pub fn borders(mut self, borders: Option<Borders>) -> Self {
+    pub fn borders(mut self, borders: HashMap<border::Edge, Border>) -> Self {
         self.borders = borders;
         self
     }

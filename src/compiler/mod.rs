@@ -11,10 +11,11 @@ use crate::{
         self, document,
         paragraph::ParagraphListLevelStyle,
         run,
-        utils::{Color, Length},
+        utils::{Color, Length, border::{self, Border}},
     },
 };
 use serde::{Deserialize, Serialize};
+use sugar::hashmap;
 use std::{
     fs::File,
     path::{Path, PathBuf},
@@ -94,11 +95,14 @@ impl Default for Compiler {
                     style: title::Style {
                         rdocx_style: rdocx_decl::paragraph::Style::default()
                             .alignment(Some(rdocx_decl::paragraph::Alignment::Center))
-                            .borders(Some(rdocx_decl::utils::border::Borders::All {
-                                style: rdocx_decl::utils::border::BorderStyle::Dashed,
-                                size: rdocx_decl::utils::Length::Pt(1.),
-                                color: Color::Hex("#000000".into()),
-                            }))
+                            .borders(hashmap! {
+                                border::Edge::Top => Border {color: Color::Hex("#000000".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Bottom => Border {color: Color::Hex("#0000ff".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Left => Border {color: Color::Hex("#00ff00".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Right => Border {color: Color::Hex("#00ffff".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Between => Border {color: Color::Hex("#ff0000".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Bar => Border {color: Color::Hex("#ff00ff".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
+                            })
                             .base_run(Some(
                                 run::Style::default()
                                     .size(Some(Length::Pt(20.)))
