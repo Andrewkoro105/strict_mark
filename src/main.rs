@@ -18,9 +18,11 @@ use tracing_subscriber::{filter::Targets, fmt, layer::SubscriberExt, util::Subsc
 #[command(long_about = None)]
 struct BaseCli {
     #[arg(short, long)]
-    style: Option<PathBuf>,
+    style_path: Option<PathBuf>,
     #[arg(short, long)]
     output_path: Option<PathBuf>,
+    #[arg(short, long)]
+    pdf: bool,
     #[arg(short, long)]
     debug: bool,
     #[arg(last = true)]
@@ -28,8 +30,9 @@ struct BaseCli {
 }
 
 struct Cli {
-    style: PathBuf,
+    style_path: PathBuf,
     output_path: PathBuf,
+    pdf: bool,
     debug: bool,
     path: PathBuf,
 }
@@ -38,12 +41,9 @@ impl From<BaseCli> for Cli {
     fn from(cli: BaseCli) -> Self {
         let path = cli.path.unwrap_or(PathBuf::from("main.sm"));
         Cli {
-            style: cli.style.unwrap_or(PathBuf::from("style.yaml")),
-            output_path: path
-                .parent()
-                .zip(path.file_stem())
-                .map(|(parent, name)| parent.join(format!("{}.docx", name.to_string_lossy())))
-                .unwrap_or(PathBuf::from("main.docx")),
+            style_path: cli.style_path.unwrap_or(PathBuf::from("style.yaml")),
+            output_path: path.with_extension("docx"),
+            pdf: cli.pdf,
             debug: cli.debug,
             path,
         }
@@ -97,14 +97,20 @@ fn main() {
             }
             debug!("Parse result:\n{:#?}", ast);
 
-            let compiler = Compiler::load(&cli.style);
+            let compiler = Compiler::load(&cli.style_path);
 
             let (rdocx_decl_ast, errs) = compiler.compile(&ast);
             debug!("Compile result:\n{}", serde_saphyr::to_string(&rdocx_decl_ast).unwrap());
 
-            rdocx_decl_ast.to_rdocx().save(&cli.output_path).unwrap();
-
+            let mut rdocx_doc = rdocx_decl_ast.to_rdocx();
+            rdocx_doc.save(&cli.output_path).unwrap();
             info!("Save: {:?}", cli.output_path);
+
+            if cli.pdf {
+                rdocx_doc.save_pdf(cli.output_path.with_extension("pdf")).unwrap();
+                info!("Save: {:?}", cli.output_path);
+            }
+
 
             if !errs.is_empty() {
                 warn!(

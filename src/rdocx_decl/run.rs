@@ -140,7 +140,7 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
         match style.vertical_alignment {
             Some(VerticalAlignment::Subscript) => run.set_subscript(),
             Some(VerticalAlignment::Superscript) => run.set_superscript(),
-            None => todo!(),
+            None => {},
         }
 
         if let Some(character_spacing) = style.character_spacing {
