@@ -99,27 +99,38 @@ Text can be made bold `**bold text**`, italic `*italic text*`, underlined `__und
 ## Formulas
 Single `$` can be used to write inline LaTeX formulas, and double `$` for formulas that will be displayed outside the text and numbered by many styles.
 
-## Other Files
-Inserting files into the document is divided into 3 types: insertion as a page, insertion as a resource, and insertion of an SM or SMZ file.
+## Insertion
+Document insertion is divided into 4 types: page insertion, resource insertion, SM or SMZ file insertion, and standard element insertion.
 
-If a file is not located in the project folders, it is copied as cache.
+If the file is not located within the project folders, it is copied to the cache.
 
 ### Page Insertion
-Inserts images and PDFs as pages `(path)`.
+Inserts images and PDFs as pages using the `#(path)` syntax.
 
 ### Resource Insertion
-Inserts images, adding captions to them. If several such images are specified consecutively without blank lines, they will be combined into a group.
+Inserts images and adds captions to them. If multiple such images are specified consecutively without empty lines between them, they will be merged into a single group.
 ```
-(path1.png)"
+#(path1.png)"
 text1
 "
-(path2.png)"
+#(path2.png)"
 text2
 "
 ```
 
 ### SM or SMZ File Insertion
-Inserts the specified file, inserting a list of its data at the call site `(path.sm)`.
+Inserts the specified file by embedding its data list directly at the invocation point `#(path.sm)`.
+
+### Standard Element Insertion
+Inserts an element with the specified name `#[name]`. The implementation and the list of available names are determined by the active style, but a subset of names is predefined for standardization purposes.
+
+Standard names:
+
+- `#[contents]` — inserts the table of contents
+- `#[lists_count]` — inserts the total number of sheets
+- `#[pictures_count]` — inserts the total number of pictures
+- `#[formulas_count]` — inserts the total number of formulas
+- `#[tables_count]` — inserts the total number of tables
 
 ## Tables
 Tables can be created in a Markdown-like way, but it is extended to allow merging cells and specifying how text should be positioned in cells.
