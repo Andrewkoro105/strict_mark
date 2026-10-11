@@ -8,6 +8,10 @@ pub mod equation;
 
 use std::collections::HashMap;
 
+pub(crate) fn is_default<T: Default + PartialEq>(value: &T) -> bool {
+    value == &T::default()
+}
+
 #[derive(Debug, Default)]
 pub struct Cash {
     pub lists: HashMap<String, u32>,

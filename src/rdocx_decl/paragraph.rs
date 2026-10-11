@@ -13,6 +13,7 @@ use crate::rdocx_decl::{
 };
 use rdocx::Document;
 use serde::{Deserialize, Serialize};
+use super::is_default;
 
 //todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -23,13 +24,13 @@ pub enum Alignment {
     Justify,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum LineSpacing {
     Length(Length),
     Multiple(f64),
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub enum ParagraphListLevelStyle {
     Name(String),
     #[default]
@@ -37,25 +38,25 @@ pub enum ParagraphListLevelStyle {
     Style(Vec<ListLevel>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParagraphListLevel {
     pub stile: ParagraphListLevelStyle,
     pub level: u32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ShadingPattern {
     Other(String),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Shading {
     pattern: ShadingPattern,
     fill_color: Color,
     color: Color,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Style {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub alignment: Option<Alignment>,
@@ -112,6 +113,7 @@ to_rdocx_static_dispatch! {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Paragraph {
     pub contents: Vec<Content>,
+    #[serde(default, skip_serializing_if = "is_default")]
     pub style: Style,
 }
 

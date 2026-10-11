@@ -9,7 +9,7 @@ use crate::{
     compiler::{
         enumerate::Enumerate, formula::Formula, lua::LuaStyle, paragraph::Paragraph, title::Title,
     },
-    data::{self, ParseData},
+    data::ParseData,
     rdocx_decl::{
         self, document,
         paragraph::ParagraphListLevelStyle,
@@ -225,7 +225,7 @@ impl Compile<ParseData, (Vec<rdocx_decl::document::Content>, Vec<Error>)> for Co
                 .find_map(|compiler| compiler.compile(formula, ctx, cash))
                 .map(|result| (result, vec![]))
                 .unwrap_or_else(|| (vec![], vec![Error::NoSuitableStyle(ast.clone())])),
-            ParseData::Comments(_comments) => {(vec![], vec![])}
+            ParseData::Comments(_comments) => (vec![], vec![]),
             _ => todo!("Not supported: {ast:#?}"),
         }
     }

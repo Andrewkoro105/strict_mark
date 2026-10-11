@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::rdocx_decl::{Cash, ToRdocx, list_level::{ListLevel, base_list_style_name}, paragraph::Paragraph};
 use serde::{Deserialize, Serialize};
+use super::is_default;
 
 to_rdocx_static_dispatch! {
     {#[derive(Debug, Clone, Serialize, Deserialize)]},
@@ -11,7 +12,7 @@ to_rdocx_static_dispatch! {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Stile {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     lists: HashMap<String, Vec<ListLevel>>,
@@ -20,6 +21,7 @@ pub struct Stile {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Document {
     pub contents: Vec<Content>,
+    #[serde(default, skip_serializing_if = "is_default")]
     pub stile: Stile,
 }
 

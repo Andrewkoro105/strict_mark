@@ -4,6 +4,7 @@ use crate::rdocx_decl::{
 };
 use rdocx::Paragraph;
 use serde::{Deserialize, Serialize};
+use super::is_default;
 
 //todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -18,19 +19,19 @@ pub enum UnderlineStyle {
     Words,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Caps {
     All,
     Small,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum VerticalAlignment {
     Subscript,
     Superscript,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Style {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bold: Option<bool>,
@@ -77,6 +78,7 @@ pub enum Content {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Run {
     pub contents: Vec<Content>,
+    #[serde(default, skip_serializing_if = "is_default")]
     pub style: Style,
 }
 

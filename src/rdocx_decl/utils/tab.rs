@@ -20,7 +20,7 @@ pub enum TabLeader {
     Underscore,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TabStop {
     TabStop {
         alignment: TabAlignment,

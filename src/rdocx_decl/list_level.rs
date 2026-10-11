@@ -87,7 +87,7 @@ pub enum ListLevelRestart {
 }
 
 //todo: Add to marker_properties in the future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ListLevel {
     format: ListNumberFormat,
     #[serde(default, skip_serializing_if = "Option::is_none")]

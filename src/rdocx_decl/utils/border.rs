@@ -32,7 +32,7 @@ pub enum Edge {
     Bar,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Border {
     pub style: BorderStyle,
     pub size: Length,

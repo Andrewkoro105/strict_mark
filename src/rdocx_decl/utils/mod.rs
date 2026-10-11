@@ -5,13 +5,13 @@ pub mod tab;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Color {
     Hex(String),
     Rgb(u8, u8, u8),
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum Length {
     Emu(i64),
     Inches(f64),
@@ -34,7 +34,7 @@ pub enum SectionBreak {
     OddPage,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SectionPageSize {
     Landscape,
     Portrait,
