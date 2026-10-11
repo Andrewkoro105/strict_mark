@@ -6,7 +6,7 @@ impl Compile<TextVariants, paragraph::Content> for Text {
     fn compile(&self, ast: &TextVariants, _ctx: &Ctx, _cash: &mut super::Cash) -> paragraph::Content {
         match ast {
             TextVariants::PhantomNewLine => Run {
-                contents: vec![run::Content::Text("".into())],
+                contents: vec![run::Content::Text(" ".into())],
                 style: run::Style::default(),
             }.into(),
             TextVariants::Text(text) => Run {
