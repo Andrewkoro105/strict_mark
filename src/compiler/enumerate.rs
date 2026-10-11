@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use crate::{
     compiler::{BaseCompiler, BaseCompilerDataRef, Compile, Compiler, Ctx, Error},
     data::{self, EnumerateType},
@@ -8,6 +6,7 @@ use crate::{
         paragraph::{ParagraphListLevel, ParagraphListLevelStyle},
     },
 };
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Style {

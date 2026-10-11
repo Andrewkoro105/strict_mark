@@ -1,25 +1,31 @@
 pub mod enumerate;
+pub mod formula;
 pub mod lua;
 pub mod paragraph;
 pub mod text;
 pub mod title;
 
 use crate::{
-    compiler::{enumerate::Enumerate, lua::LuaStyle, paragraph::Paragraph, title::Title},
+    compiler::{
+        enumerate::Enumerate, formula::Formula, lua::LuaStyle, paragraph::Paragraph, title::Title,
+    },
     data::{self, ParseData},
     rdocx_decl::{
         self, document,
         paragraph::ParagraphListLevelStyle,
         run,
-        utils::{Color, Length, border::{self, Border}},
+        utils::{
+            Color, Length,
+            border::{self, Border},
+        },
     },
 };
 use serde::{Deserialize, Serialize};
-use sugar::hashmap;
 use std::{
     fs::File,
     path::{Path, PathBuf},
 };
+use sugar::hashmap;
 use tracing::warn;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -73,6 +79,7 @@ pub struct Compiler {
     pub titles: Vec<Title>,
     pub paragraphs: Vec<Paragraph>,
     pub enumerates: Vec<Enumerate>,
+    pub formulas: Vec<Formula>,
 }
 
 impl Default for Compiler {
@@ -80,10 +87,7 @@ impl Default for Compiler {
         Self {
             doc_style: document::Stile::default(),
             paragraphs: vec![Paragraph {
-                data: paragraph::Data {
-                    paragraph_type: data::ParagraphType::Default,
-                }
-                .into(),
+                data: BaseCompilerData::none(),
                 style: paragraph::Style {
                     rdocx_style: rdocx_decl::paragraph::Style::default(),
                 }
@@ -154,6 +158,7 @@ impl Default for Compiler {
                 }
                 .into(),
             }],
+            formulas: vec![Formula{data: BaseCompilerData::none(), style: formula::Style{rdocx_style: rdocx_decl::paragraph::Style::default()}.into()}]
         }
     }
 }
@@ -213,6 +218,14 @@ impl Compile<ParseData, (Vec<rdocx_decl::document::Content>, Vec<Error>)> for Co
                 .cloned()
                 .find_map(|compiler| (compiler, self).compile(enumerate, ctx, cash))
                 .unwrap_or_else(|| (vec![], vec![Error::NoSuitableStyle(ast.clone())])),
+            ParseData::Formula(formula) => self
+                .formulas
+                .iter()
+                .cloned()
+                .find_map(|compiler| compiler.compile(formula, ctx, cash))
+                .map(|result| (result, vec![]))
+                .unwrap_or_else(|| (vec![], vec![Error::NoSuitableStyle(ast.clone())])),
+            ParseData::Comments(_comments) => {(vec![], vec![])}
             _ => todo!("Not supported: {ast:#?}"),
         }
     }

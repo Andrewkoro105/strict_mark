@@ -4,6 +4,7 @@ use crate::rdocx_decl::{
     Cash, ToRdocx,
     list_level::{ListLevel, base_list_style_name},
     run::{self, Run},
+    equation::Equation,
     utils::{
         Color, Length, SectionBreak, SectionPageSize,
         border::{self, Border},
@@ -102,7 +103,8 @@ to_rdocx_static_dispatch! {
     impl{'p},
     <{D: rdocx::Paragraph<'p>}, {T: &Option<run::Style>}>,
     Content {
-        Run
+        Run,
+        Equation
     }
 }
 

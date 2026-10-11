@@ -4,6 +4,7 @@ pub mod document;
 pub mod paragraph;
 pub mod run;
 pub mod list_level;
+pub mod equation;
 
 use std::collections::HashMap;
 

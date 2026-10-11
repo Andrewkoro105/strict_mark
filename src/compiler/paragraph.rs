@@ -38,7 +38,7 @@ impl Compile<data::Paragraph> for Paragraph {
                         contents: ast
                             .text
                             .iter()
-                            .map(|text| (Text).compile(text, ctx, cash).into())
+                            .map(|text| (Text).compile(text, ctx, cash))
                             .collect(),
                         style: style.rdocx_style,
                     }

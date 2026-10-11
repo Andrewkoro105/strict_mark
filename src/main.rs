@@ -107,10 +107,10 @@ fn main() {
             info!("Save: {:?}", cli.output_path);
 
             if cli.pdf {
-                rdocx_doc.save_pdf(cli.output_path.with_extension("pdf")).unwrap();
-                info!("Save: {:?}", cli.output_path);
+                let pdf_path = cli.output_path.with_extension("pdf");
+                rdocx_doc.save_pdf(&pdf_path).unwrap();
+                info!("Save: {:?}", pdf_path);
             }
-
 
             if !errs.is_empty() {
                 warn!(
