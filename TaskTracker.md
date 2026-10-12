@@ -9,13 +9,21 @@
 - [X] Formula
 - [X] Paragraph
 - [X] Title
-- [X] Enumerate
 - [ ] Quote
 - [ ] Integrations
 - [ ] Table
 - [ ] Extensions
 ## Style
 - [ ] Basic configuration of elements
+    - [X] Comments
+    - [X] Enumerate
+    - [X] Formula
+    - [X] Paragraph
+    - [X] Title
+    - [ ] Quote
+    - [ ] Integrations
+    - [ ] Table
+    - [ ] Extensions
 - [ ] Modifying elements using `Lua`
 - [ ] Validator
 - [ ] Contexster
