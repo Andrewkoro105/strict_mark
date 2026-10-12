@@ -1,8 +1,12 @@
 use std::collections::HashMap;
 
-use crate::rdocx_decl::{Cash, ToRdocx, list_level::{ListLevel, base_list_style_name}, paragraph::Paragraph};
-use serde::{Deserialize, Serialize};
 use super::is_default;
+use crate::rdocx_decl::{
+    Cash, ToRdocx,
+    list_level::{ListLevel, ListLevelStyleId},
+    paragraph::Paragraph,
+};
+use serde::{Deserialize, Serialize};
 
 to_rdocx_static_dispatch! {
     {#[derive(Debug, Clone, Serialize, Deserialize)]},
@@ -15,7 +19,7 @@ to_rdocx_static_dispatch! {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Stile {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    lists: HashMap<String, Vec<ListLevel>>,
+    lists: HashMap<ListLevelStyleId, Vec<ListLevel>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -33,7 +37,6 @@ impl Document {
                 .stile
                 .lists
                 .iter()
-                .chain(vec![(&base_list_style_name(), &vec![])])
                 .map(|(name, list)| {
                     (
                         name.clone(),

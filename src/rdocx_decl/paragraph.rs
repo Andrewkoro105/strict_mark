@@ -1,10 +1,12 @@
-use std::collections::HashMap;
-
+use std::{
+    collections::HashMap,
+};
+use super::is_default;
 use crate::rdocx_decl::{
     Cash, ToRdocx,
-    list_level::{ListLevel, base_list_style_name},
-    run::{self, Run},
     equation::Equation,
+    list_level::{ListLevel, ListLevelStyleId},
+    run::{self, Run},
     utils::{
         Color, Length, SectionBreak, SectionPageSize,
         border::{self, Border},
@@ -13,7 +15,6 @@ use crate::rdocx_decl::{
 };
 use rdocx::Document;
 use serde::{Deserialize, Serialize};
-use super::is_default;
 
 //todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -30,12 +31,11 @@ pub enum LineSpacing {
     Multiple(f64),
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-pub enum ParagraphListLevelStyle {
-    Name(String),
-    #[default]
-    Base,
-    Style(Vec<ListLevel>),
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ParagraphListLevelStyle {
+    #[serde(default = "ListLevelStyleId::new")]
+    pub id: ListLevelStyleId,
+    pub style: Vec<ListLevel>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -121,24 +121,16 @@ impl ToRdocx<Document> for Paragraph {
     fn to_rdocx(&self, doc: &mut Document, _data: (), cash: &mut Cash) {
         let list_level = self.style.list_level.as_ref().map(|list_level| {
             (
-                match &list_level.stile {
-                    ParagraphListLevelStyle::Name(name) => cash
-                        .lists
-                        .get(name)
-                        .cloned()
-                        .unwrap_or(cash.lists.get(&base_list_style_name()).cloned().unwrap()),
-                    ParagraphListLevelStyle::Base => {
-                        cash.lists.get(&base_list_style_name()).cloned().unwrap()
-                    }
-                    ParagraphListLevelStyle::Style(list_level) => doc.add_list_definition(
-                        &list_level
+                cash.lists.get(&list_level.stile.id).cloned().unwrap_or_else(|| {
+                    doc.add_list_definition(
+                        &list_level.stile.style
                             .iter()
                             .cloned()
                             .map(Into::into)
                             .collect::<Vec<_>>()
                             .as_slice(),
-                    ),
-                },
+                    )
+                }),
                 list_level.level,
             )
         });

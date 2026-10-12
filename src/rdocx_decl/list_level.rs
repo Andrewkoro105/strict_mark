@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use serde::{Deserialize, Serialize};
 
 use crate::rdocx_decl::{paragraph::Alignment, utils::Length};
@@ -86,6 +88,12 @@ pub enum ListLevelRestart {
     After(u32),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ListLevelStyleId {
+    Name(String),
+    Num(usize),
+}
+
 //todo: Add to marker_properties in the future.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ListLevel {
@@ -112,10 +120,6 @@ pub struct ListLevel {
     template_code: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     tentative: Option<bool>,
-}
-
-pub(super) fn base_list_style_name() -> String {
-    format!("base_{}", env!("CARGO_PKG_NAME"))
 }
 
 impl Into<rdocx::ListLevel> for ListLevel {
@@ -267,5 +271,12 @@ impl Into<rdocx::ListNumberFormat> for ListNumberFormat {
             ListNumberFormat::None => rdocx::ListNumberFormat::None,
             ListNumberFormat::Other(other) => rdocx::ListNumberFormat::Other(other),
         }
+    }
+}
+
+impl ListLevelStyleId {
+    pub fn new() -> Self {
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+        ListLevelStyleId::Num(COUNTER.fetch_add(1, Ordering::Relaxed) + 1)
     }
 }

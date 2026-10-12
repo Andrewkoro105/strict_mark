@@ -8,13 +8,15 @@ pub mod equation;
 
 use std::collections::HashMap;
 
+use crate::rdocx_decl::list_level::ListLevelStyleId;
+
 pub(crate) fn is_default<T: Default + PartialEq>(value: &T) -> bool {
     value == &T::default()
 }
 
 #[derive(Debug, Default)]
 pub struct Cash {
-    pub lists: HashMap<String, u32>,
+    pub lists: HashMap<ListLevelStyleId, u32>,
 }
 
 pub trait ToRdocx<D, T = ()> {

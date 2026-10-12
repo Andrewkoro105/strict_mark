@@ -11,13 +11,10 @@ use crate::{
     },
     data::ParseData,
     rdocx_decl::{
-        self, document,
-        paragraph::ParagraphListLevelStyle,
-        run,
-        utils::{
+        self, document, list_level::ListLevelStyleId, paragraph::ParagraphListLevelStyle, run, utils::{
             Color, Length,
             border::{self, Border},
-        },
+        }
     },
 };
 use serde::{Deserialize, Serialize};
@@ -154,7 +151,10 @@ impl Default for Compiler {
             enumerates: vec![Enumerate {
                 data: BaseCompilerData::none(),
                 style: enumerate::Style {
-                    rdocx_style_name: ParagraphListLevelStyle::default(),
+                    rdocx_style_name: ParagraphListLevelStyle {
+                        id: ListLevelStyleId::new(),
+                        style: vec![]
+                    },
                 }
                 .into(),
             }],
