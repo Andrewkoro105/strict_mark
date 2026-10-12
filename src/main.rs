@@ -8,6 +8,7 @@ use crate::data::{IntoParse, error::ErrorEditor};
 use chumsky::Parser as ChumskyParser;
 use clap::Parser;
 use data::PreParseData;
+use std::fs::OpenOptions;
 use std::time::Instant;
 use std::{fs::File, io::Read, path::PathBuf};
 use tracing::{Level, debug, error, info, warn};
@@ -24,6 +25,8 @@ struct BaseCli {
     #[arg(short, long)]
     pdf: bool,
     #[arg(short, long)]
+    generate_base_style: bool,
+    #[arg(short, long)]
     debug: bool,
     #[arg(last = true)]
     path: Option<PathBuf>,
@@ -33,6 +36,7 @@ struct Cli {
     style_path: PathBuf,
     output_path: PathBuf,
     pdf: bool,
+    generate_base_style: bool,
     debug: bool,
     path: PathBuf,
 }
@@ -44,6 +48,7 @@ impl From<BaseCli> for Cli {
             style_path: cli.style_path.unwrap_or(PathBuf::from("style.yaml")),
             output_path: path.with_extension("docx"),
             pdf: cli.pdf,
+            generate_base_style: cli.generate_base_style,
             debug: cli.debug,
             path,
         }
@@ -65,6 +70,19 @@ fn main() {
         .with(fmt::Layer::new())
         .with(filter)
         .init();
+
+    if cli.generate_base_style {
+        serde_saphyr::to_io_writer(
+            &mut OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(&cli.style_path)
+                .unwrap(),
+            &Compiler::default(),
+        )
+        .unwrap();
+    }
 
     if cli.path.extension() != Some("sm".as_ref()) {
         warn!("This file has the wrong file extension or no file extension at all.");
@@ -100,7 +118,10 @@ fn main() {
             let compiler = Compiler::load(&cli.style_path);
 
             let (rdocx_decl_ast, errs) = compiler.compile(&ast);
-            debug!("Compile result:\n{}", serde_saphyr::to_string(&rdocx_decl_ast).unwrap());
+            debug!(
+                "Compile result:\n{}",
+                serde_saphyr::to_string(&rdocx_decl_ast).unwrap()
+            );
 
             let mut rdocx_doc = rdocx_decl_ast.to_rdocx();
             rdocx_doc.save(&cli.output_path).unwrap();

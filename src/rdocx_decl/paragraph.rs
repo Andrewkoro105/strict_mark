@@ -122,14 +122,16 @@ impl ToRdocx<Document> for Paragraph {
         let list_level = self.style.list_level.as_ref().map(|list_level| {
             (
                 cash.lists.get(&list_level.stile.id).cloned().unwrap_or_else(|| {
-                    doc.add_list_definition(
+                    let result = doc.add_list_definition(
                         list_level.stile.style
                             .iter()
                             .cloned()
                             .map(Into::into)
                             .collect::<Vec<_>>()
                             .as_slice(),
-                    )
+                    );
+                    cash.lists.insert(list_level.stile.id.clone(), result);
+                    result
                 }),
                 list_level.level,
             )
