@@ -101,31 +101,25 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
         run.set_italic_value(style.italic);
         run.set_underline_style_value(style.underline_style.map(Into::into));
         run.set_size_value(style.size.map(Length::into_rdocx).map(rdocx::Length::to_pt));
-        run.set_font_value(style.font_name.as_ref().map(String::as_str));
-        run.set_language_value(style.language.as_ref().map(String::as_str));
+        run.set_font_value(style.font_name.as_deref());
+        run.set_language_value(style.language.as_deref());
         run.set_color_value(
             style
                 .color
                 .as_ref()
-                .map(ToString::to_string)
-                .as_ref()
-                .map(String::as_str),
+                .map(ToString::to_string).as_deref(),
         );
         run.set_highlight_value(
             style
                 .highlight
                 .as_ref()
-                .map(ToString::to_string)
-                .as_ref()
-                .map(String::as_str),
+                .map(ToString::to_string).as_deref(),
         );
         run.set_shading_value(
             style
                 .shading
                 .as_ref()
-                .map(ToString::to_string)
-                .as_ref()
-                .map(String::as_str),
+                .map(ToString::to_string).as_deref(),
         );
         run.set_strike_value(style.strike);
 
@@ -163,9 +157,9 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
     }
 }
 
-impl Into<rdocx::UnderlineStyle> for UnderlineStyle {
-    fn into(self) -> rdocx::UnderlineStyle {
-        match self {
+impl From<UnderlineStyle> for rdocx::UnderlineStyle {
+    fn from(val: UnderlineStyle) -> Self {
+        match val {
             UnderlineStyle::None => rdocx::UnderlineStyle::None,
             UnderlineStyle::Single => rdocx::UnderlineStyle::Single,
             UnderlineStyle::Double => rdocx::UnderlineStyle::Double,

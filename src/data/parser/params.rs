@@ -119,7 +119,7 @@ pub fn params<'src>() -> impl Parser<'src, &'src str, Params, extra::Err<Error>>
         )
 }
 
-pub fn unknown_variables<'src>(
+pub fn unknown_variables(
     variables: HashMap<String, ParamData>,
     known_name: Vec<String>,
 ) -> Vec<Error> {

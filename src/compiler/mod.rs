@@ -37,7 +37,7 @@ pub struct Ctx {
     //enumerate_level: Option<(Option<String>, u32)>,
 }
 
-pub(self) trait Compile<T, R = Option<Vec<rdocx_decl::document::Content>>> {
+trait Compile<T, R = Option<Vec<rdocx_decl::document::Content>>> {
     fn compile(&self, ast: &T, ctx: &Ctx, cash: &mut Cash) -> R;
 }
 
@@ -152,7 +152,7 @@ impl Default for Compiler {
                 data: BaseCompilerData::none(),
                 style: enumerate::Style {
                     rdocx_style_name: ParagraphListLevelStyle {
-                        id: ListLevelStyleId::new(),
+                        id: ListLevelStyleId::unique(),
                         style: vec![]
                     },
                 }
@@ -241,7 +241,6 @@ impl Compiler {
             ast,
             &Ctx {
                 style_ctx: None,
-                ..Default::default()
             },
             &mut Cash::default(),
         );
@@ -261,13 +260,13 @@ impl<'a, D: PartialEq<D>> PartialEq<BaseCompilerData<D>> for BaseCompilerDataRef
             .data
             .as_ref()
             .zip(other.data.as_ref())
-            .map_or(true, |(d, od)| *d == od);
+            .is_none_or(|(d, od)| *d == od);
 
         let ctx = self
             .ctx
             .as_ref()
             .zip(other.ctx.as_ref())
-            .map_or(true, |(d, od)| *d == od);
+            .is_none_or(|(d, od)| *d == od);
 
         data && ctx
     }

@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::HashMap, fmt::Display,
 };
 use super::is_default;
 use crate::rdocx_decl::{
@@ -33,7 +33,7 @@ pub enum LineSpacing {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParagraphListLevelStyle {
-    #[serde(default = "ListLevelStyleId::new")]
+    #[serde(default = "ListLevelStyleId::unique")]
     pub id: ListLevelStyleId,
     pub style: Vec<ListLevel>,
 }
@@ -123,7 +123,7 @@ impl ToRdocx<Document> for Paragraph {
             (
                 cash.lists.get(&list_level.stile.id).cloned().unwrap_or_else(|| {
                     doc.add_list_definition(
-                        &list_level.stile.style
+                        list_level.stile.style
                             .iter()
                             .cloned()
                             .map(Into::into)
@@ -140,13 +140,13 @@ impl ToRdocx<Document> for Paragraph {
             content.to_rdocx(&mut paragraph, &self.style.base_run, cash);
         });
 
-        paragraph.set_alignment_value(self.style.alignment.clone().map(Into::into));
-        paragraph.set_space_before_value(self.style.space_before.clone().map(Into::into));
-        paragraph.set_space_after_value(self.style.space_after.clone().map(Into::into));
-        paragraph.set_indent_left_value(self.style.indent_left.clone().map(Into::into));
-        paragraph.set_indent_right_value(self.style.indent_right.clone().map(Into::into));
+        paragraph.set_alignment_value(self.style.alignment.map(Into::into));
+        paragraph.set_space_before_value(self.style.space_before.map(Into::into));
+        paragraph.set_space_after_value(self.style.space_after.map(Into::into));
+        paragraph.set_indent_left_value(self.style.indent_left.map(Into::into));
+        paragraph.set_indent_right_value(self.style.indent_right.map(Into::into));
         paragraph.set_signed_first_line_indent_value(
-            self.style.signed_first_line_indent.clone().map(Into::into),
+            self.style.signed_first_line_indent.map(Into::into),
         );
         paragraph.set_keep_with_next_value(self.style.keep_with_next);
         paragraph.set_keep_together_value(self.style.keep_together);
@@ -185,8 +185,7 @@ impl ToRdocx<Document> for Paragraph {
             .tab_stops
             .iter()
             .flatten()
-            .cloned()
-            .for_each(|tab_stop| match tab_stop {
+            .for_each(|&tab_stop| match tab_stop {
                 TabStop::TabStop {
                     alignment,
                     position,
@@ -221,9 +220,9 @@ impl ToRdocx<Document> for Paragraph {
     }
 }
 
-impl Into<rdocx::Alignment> for Alignment {
-    fn into(self) -> rdocx::Alignment {
-        match self {
+impl From<Alignment> for rdocx::Alignment {
+    fn from(val: Alignment) -> Self {
+        match val {
             Alignment::Left => rdocx::Alignment::Left,
             Alignment::Center => rdocx::Alignment::Center,
             Alignment::Right => rdocx::Alignment::Right,
@@ -232,10 +231,10 @@ impl Into<rdocx::Alignment> for Alignment {
     }
 }
 
-impl ToString for ShadingPattern {
-    fn to_string(&self) -> String {
+impl Display for ShadingPattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ShadingPattern::Other(other) => other.clone(),
+            ShadingPattern::Other(other) => other.fmt(f),
         }
     }
 }

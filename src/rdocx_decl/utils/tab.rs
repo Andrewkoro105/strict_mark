@@ -20,7 +20,7 @@ pub enum TabLeader {
     Underscore,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum TabStop {
     TabStop {
         alignment: TabAlignment,
@@ -33,9 +33,9 @@ pub enum TabStop {
     }
 }
 
-impl Into<rdocx::TabAlignment> for TabAlignment {
-    fn into(self) -> rdocx::TabAlignment {
-        match self {
+impl From<TabAlignment> for rdocx::TabAlignment {
+    fn from(val: TabAlignment) -> Self {
+        match val {
             TabAlignment::Left => rdocx::TabAlignment::Left,
             TabAlignment::Center => rdocx::TabAlignment::Center,
             TabAlignment::Right => rdocx::TabAlignment::Right,
@@ -44,9 +44,9 @@ impl Into<rdocx::TabAlignment> for TabAlignment {
     }
 }
 
-impl Into<rdocx::TabLeader> for TabLeader {
-    fn into(self) -> rdocx::TabLeader {
-        match self {
+impl From<TabLeader> for rdocx::TabLeader {
+    fn from(val: TabLeader) -> Self {
+        match val {
             TabLeader::None => rdocx::TabLeader::None,
             TabLeader::Dot => rdocx::TabLeader::Dot,
             TabLeader::Hyphen => rdocx::TabLeader::Hyphen,

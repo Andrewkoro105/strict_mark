@@ -39,9 +39,9 @@ pub struct Border {
     pub color: Color,
 }
 
-impl Into<rdocx::BorderStyle> for BorderStyle {
-    fn into(self) -> rdocx::BorderStyle {
-        match self {
+impl From<BorderStyle> for rdocx::BorderStyle {
+    fn from(val: BorderStyle) -> Self {
+        match val {
             BorderStyle::None => rdocx::BorderStyle::None,
             BorderStyle::Single => rdocx::BorderStyle::Single,
             BorderStyle::Thick => rdocx::BorderStyle::Thick,
@@ -54,9 +54,9 @@ impl Into<rdocx::BorderStyle> for BorderStyle {
     }
 }
 
-impl Into<rdocx::ParagraphBorderEdge> for Edge {
-    fn into(self) -> rdocx::ParagraphBorderEdge {
-        match self {
+impl From<Edge> for rdocx::ParagraphBorderEdge {
+    fn from(val: Edge) -> Self {
+        match val {
             Edge::Top => rdocx::ParagraphBorderEdge::Top,
             Edge::Bottom => rdocx::ParagraphBorderEdge::Bottom,
             Edge::Left => rdocx::ParagraphBorderEdge::Left,

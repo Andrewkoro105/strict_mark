@@ -72,9 +72,9 @@ fn main() {
     let mut file_str = String::new();
 
     File::open(&cli.path)
-        .expect(&format!("Can`t open file {:?}", cli.path))
+        .unwrap_or_else(|_| panic!("Can`t open file {:?}", cli.path))
         .read_to_string(&mut file_str)
-        .expect(&format!("Can`t read file {:?}", cli.path));
+        .unwrap_or_else(|_| panic!("Can`t read file {:?}", cli.path));
 
     let result = PreParseData::Pre {
         data_str: file_str,

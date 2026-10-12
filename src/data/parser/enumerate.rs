@@ -74,8 +74,8 @@ pub fn enumerate<'src>() -> impl Parser<'src, &'src str, PreParseData, extra::Er
         )
         .validate(|(mut params, data), map_extra, emitter| {
             let enumerate_type = params
-                .remove(&"type".to_string())
-                .map(|paragraph_type_data| match paragraph_type_data.value {
+                .remove("type")
+                .and_then(|paragraph_type_data| match paragraph_type_data.value {
                     ParamValues::Value(paragraph_type_str) => {
                         Some(match paragraph_type_str.as_str() {
                             "default" => EnumerateType::Default,
@@ -98,7 +98,6 @@ pub fn enumerate<'src>() -> impl Parser<'src, &'src str, PreParseData, extra::Er
                         None
                     }
                 })
-                .flatten()
                 .unwrap_or(EnumerateType::default());
 
             unknown_variables(params, vec!["type".into()])

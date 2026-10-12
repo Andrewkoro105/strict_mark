@@ -122,54 +122,51 @@ pub struct ListLevel {
     tentative: Option<bool>,
 }
 
-impl Into<rdocx::ListLevel> for ListLevel {
-    fn into(self) -> rdocx::ListLevel {
-        let mut result = rdocx::ListLevel::new(self.format.into());
-        if let Some(start) = self.start {
+impl From<ListLevel> for rdocx::ListLevel {
+    fn from(val: ListLevel) -> Self {
+        let mut result = rdocx::ListLevel::new(val.format.into());
+        if let Some(start) = val.start {
             result = result.start(start);
         }
-        if let Some(level_text) = self.level_text {
+        if let Some(level_text) = val.level_text {
             result = result.level_text(level_text);
         }
-        if let Some(suffix) = self.suffix {
+        if let Some(suffix) = val.suffix {
             result = result.suffix(suffix.into());
         }
-        if let Some(alignment) = self.alignment {
+        if let Some(alignment) = val.alignment {
             result = result.alignment(alignment.into());
         }
         result = result.indentation(
-            self.indent_left
-                .clone()
+            val.indent_left
                 .map(Length::into_rdocx)
                 .map(rdocx::Length::as_twips),
-            self.indent_hanging
-                .clone()
+            val.indent_hanging
                 .map(Length::into_rdocx)
                 .map(rdocx::Length::as_twips),
-            self.indent_first_line
-                .clone()
+            val.indent_first_line
                 .map(Length::into_rdocx)
                 .map(rdocx::Length::as_twips),
         );
-        if let Some(legal_numbering) = self.legal_numbering {
+        if let Some(legal_numbering) = val.legal_numbering {
             result = result.legal_numbering(legal_numbering);
         }
-        if let Some(restart) = self.restart {
+        if let Some(restart) = val.restart {
             result = result.restart(restart.into());
         }
-        if let Some(template_code) = self.template_code {
+        if let Some(template_code) = val.template_code {
             result = result.template_code(template_code);
         }
-        if let Some(tentative) = self.tentative {
+        if let Some(tentative) = val.tentative {
             result = result.tentative(tentative);
         }
         result
     }
 }
 
-impl Into<rdocx::ListLevelSuffix> for ListLevelSuffix {
-    fn into(self) -> rdocx::ListLevelSuffix {
-        match self {
+impl From<ListLevelSuffix> for rdocx::ListLevelSuffix {
+    fn from(val: ListLevelSuffix) -> Self {
+        match val {
             ListLevelSuffix::Tab => rdocx::ListLevelSuffix::Tab,
             ListLevelSuffix::Space => rdocx::ListLevelSuffix::Space,
             ListLevelSuffix::Nothing => rdocx::ListLevelSuffix::Nothing,
@@ -177,18 +174,18 @@ impl Into<rdocx::ListLevelSuffix> for ListLevelSuffix {
     }
 }
 
-impl Into<rdocx::ListLevelRestart> for ListLevelRestart {
-    fn into(self) -> rdocx::ListLevelRestart {
-        match self {
+impl From<ListLevelRestart> for rdocx::ListLevelRestart {
+    fn from(val: ListLevelRestart) -> Self {
+        match val {
             ListLevelRestart::Never => rdocx::ListLevelRestart::Never,
             ListLevelRestart::After(after) => rdocx::ListLevelRestart::After(after),
         }
     }
 }
 
-impl Into<rdocx::ListNumberFormat> for ListNumberFormat {
-    fn into(self) -> rdocx::ListNumberFormat {
-        match self {
+impl From<ListNumberFormat> for rdocx::ListNumberFormat {
+    fn from(val: ListNumberFormat) -> Self {
+        match val {
             ListNumberFormat::Decimal => rdocx::ListNumberFormat::Decimal,
             ListNumberFormat::UpperRoman => rdocx::ListNumberFormat::UpperRoman,
             ListNumberFormat::LowerRoman => rdocx::ListNumberFormat::LowerRoman,
@@ -275,7 +272,7 @@ impl Into<rdocx::ListNumberFormat> for ListNumberFormat {
 }
 
 impl ListLevelStyleId {
-    pub fn new() -> Self {
+    pub fn unique() -> Self {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
         ListLevelStyleId::Num(COUNTER.fetch_add(1, Ordering::Relaxed) + 1)
     }

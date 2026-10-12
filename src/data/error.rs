@@ -133,18 +133,14 @@ impl<'src> ChumskyError<'src, &'src str> for Error {
         #[cfg(not(test))]
         let mut unknown_block_expected = HashSet::new();
 
-        self.expected = self
-            .expected
-            .into_iter()
-            .filter(|(block, expected)| {
+        self.expected.retain(|(block, expected)| {
                 if *block == Block::Unknown {
                     unknown_block_expected.extend(expected.clone());
                     false
                 } else {
                     true
                 }
-            })
-            .collect();
+            });
 
         self.expected.push((
             Block::Unknown,
@@ -155,7 +151,7 @@ impl<'src> ChumskyError<'src, &'src str> for Error {
     }
 }
 
-impl<'src> Error {
+impl Error {
     pub fn new(expected: Vec<Expected>, found: Option<NotEnd<char>>, span: SimpleSpan) -> Self {
         Self {
             expected: vec![(Block::Unknown, expected)],
@@ -221,20 +217,16 @@ impl ErrorEditor {
             err.spans = err.spans.clone().into_iter().flat_map(|span| {
                 let new_start =  self
                 .pos_convertor(span.start)
-                .expect(&format!(
-                    "The error `{:?}`\ncannot be converted using `{:?}`\nbecause position {} is not within its span.", 
+                .unwrap_or_else(|| panic!("The error `{:?}`\ncannot be converted using `{:?}`\nbecause position {} is not within its span.", 
                     err_clone,
                     self,
-                    span.start,
-                ));
+                    span.start));
                 let new_end = self
                     .pos_convertor(span.end)
-                    .expect(&format!(
-                        "The error `{:?}`\ncannot be converted using `{:?}`\nbecause position {} is not within its span.", 
+                    .unwrap_or_else(|| panic!("The error `{:?}`\ncannot be converted using `{:?}`\nbecause position {} is not within its span.", 
                         err_clone,
                         self,
-                        span.end
-                    ));
+                        span.end));
 
                 if new_start.span == new_end.span {
                     vec![SimpleSpan::from(new_start.pos..new_end.pos)]
@@ -248,7 +240,7 @@ impl ErrorEditor {
         }
     }
 
-    pub fn edit_errs(&self, err: &mut Vec<Error>) {
+    pub fn edit_errs(&self, err: &mut [Error]) {
         err.iter_mut().for_each(|err| self.edit(err));
     }
 

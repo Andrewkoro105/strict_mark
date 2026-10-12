@@ -31,8 +31,8 @@ pub fn paragraph<'src>() -> impl Parser<'src, &'src str, PreParseData, extra::Er
         .then(base_paragraph())
         .validate(|(mut params, text), map_extra, emitter| {
             let paragraph_type = params
-                .remove(&"type".to_string())
-                .map(|paragraph_type_data| match paragraph_type_data.value {
+                .remove("type")
+                .and_then(|paragraph_type_data| match paragraph_type_data.value {
                     ParamValues::Value(paragraph_type_str) => {
                         Some(match paragraph_type_str.as_str() {
                             "default" => ParagraphType::Default,
@@ -52,7 +52,6 @@ pub fn paragraph<'src>() -> impl Parser<'src, &'src str, PreParseData, extra::Er
                         None
                     }
                 })
-                .flatten()
                 .unwrap_or(ParagraphType::default());
 
             unknown_variables(params, vec!["type".into()])

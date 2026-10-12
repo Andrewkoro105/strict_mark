@@ -27,7 +27,7 @@ impl Compile<data::Title> for Title {
             &Data {
                 level: ast.level,
             },
-            &ctx,
+            ctx,
         )
         .eq(&self.data)
         .then(|| {
@@ -37,7 +37,7 @@ impl Compile<data::Title> for Title {
                         contents: ast
                             .text
                             .iter()
-                            .map(|text| (Text).compile(text, ctx, cash).into())
+                            .map(|text| (Text).compile(text, ctx, cash))
                             .collect(),
                         style: style.rdocx_style,
                     }

@@ -36,7 +36,7 @@ impl
             &Data {
                 enumerate_type: ast.enumerate_type.clone(),
             },
-            &ctx,
+            ctx,
         )
         .eq(&self.0.data)
         .then(|| {
@@ -50,7 +50,7 @@ impl
                             <Compiler as Compile<
                                 data::ParseData,
                                 (Vec<rdocx_decl::document::Content>, Vec<Error>),
-                            >>::compile(&self.1, ast, &ctx, cash)
+                            >>::compile(self.1, ast, ctx, cash)
                         })
                         .fold(
                             (Vec::new(), Vec::new()),
@@ -73,7 +73,6 @@ impl
                                                     })
                                             }
                                         }
-                                        _ => {}
                                     }
                                 });
                                 acc_contents.extend(contents);

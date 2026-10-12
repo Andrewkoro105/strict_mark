@@ -3,6 +3,8 @@ pub mod to_rdocx_static_dispatch;
 pub mod border;
 pub mod tab;
 
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -41,11 +43,11 @@ pub enum SectionPageSize {
     Size { width: Length, height: Length },
 }
 
-impl ToString for Color {
-    fn to_string(&self) -> String {
+impl Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Color::Hex(hex) => hex.clone(),
-            Color::Rgb(r, g, b) => format!("#{:02X}{:02X}{:02X}", r, g, b),
+            Color::Hex(hex) => hex.fmt(f),
+            Color::Rgb(r, g, b) => format!("#{:02X}{:02X}{:02X}", r, g, b).fmt(f),
         }
     }
 }
@@ -56,9 +58,9 @@ impl Length {
     }
 }
 
-impl Into<rdocx::Length> for Length {
-    fn into(self) -> rdocx::Length {
-        match self {
+impl From<Length> for rdocx::Length {
+    fn from(val: Length) -> Self {
+        match val {
             Length::Emu(emu) => rdocx::Length::emu(emu),
             Length::Inches(inches) => rdocx::Length::inches(inches),
             Length::Cm(cm) => rdocx::Length::cm(cm),
@@ -69,9 +71,9 @@ impl Into<rdocx::Length> for Length {
     }
 }
 
-impl Into<rdocx::SectionBreak> for SectionBreak {
-    fn into(self) -> rdocx::SectionBreak {
-        match self {
+impl From<SectionBreak> for rdocx::SectionBreak {
+    fn from(val: SectionBreak) -> Self {
+        match val {
             SectionBreak::NextPage => rdocx::SectionBreak::NextPage,
             SectionBreak::Continuous => rdocx::SectionBreak::Continuous,
             SectionBreak::EvenPage => rdocx::SectionBreak::EvenPage,

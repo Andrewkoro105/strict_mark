@@ -28,7 +28,7 @@ impl Compile<data::Paragraph> for Paragraph {
             &Data {
                 paragraph_type: ast.paragraph_type.clone(),
             },
-            &ctx,
+            ctx,
         )
         .eq(&self.data)
         .then(|| {
