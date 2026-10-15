@@ -1,6 +1,5 @@
 use crate::rdocx_decl::{
-    ToRdocx,
-    utils::{Color, Length},
+    self, ToRdocx, utils::{Color, Length}
 };
 use rdocx::Paragraph;
 use serde::{Deserialize, Serialize};
@@ -88,7 +87,7 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
         paragraph: &mut Paragraph<'r>,
         base_style: &Option<Style>,
         _cash: &mut super::Cash,
-    ) {
+    ) -> Vec<rdocx_decl::Error> {
         let style = base_style.clone()
             .map(|base_style| self.style.clone().and(base_style))
             .unwrap_or(self.style.clone());
@@ -154,6 +153,8 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
         if let Some(hidden) = style.hidden {
             run.set_hidden(hidden);
         }
+
+        vec![]
     }
 }
 

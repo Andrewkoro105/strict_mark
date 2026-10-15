@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::is_default;
 use crate::rdocx_decl::{
-    Cash, ToRdocx,
+    self, Cash, ToRdocx,
     list_level::{ListLevel, ListLevelStyleId},
     paragraph::Paragraph,
 };
@@ -30,7 +30,7 @@ pub struct Document {
 }
 
 impl Document {
-    pub fn to_rdocx(&self) -> rdocx::Document {
+    pub fn to_rdocx(&self) -> (rdocx::Document, Vec<rdocx_decl::Error>) {
         let mut result = rdocx::Document::new();
         let mut cash = Cash {
             lists: self
@@ -52,10 +52,10 @@ impl Document {
                 .collect(),
         };
 
-        self.contents
-            .iter()
-            .for_each(|content| content.to_rdocx(&mut result, (), &mut cash));
+        let err = self.contents.iter().flat_map(|content| {
+            content.to_rdocx(&mut result, (), &mut cash)
+        }).collect::<Vec<_>>();
 
-        result
+        (result, err)
     }
 }

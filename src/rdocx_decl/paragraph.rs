@@ -1,9 +1,6 @@
-use std::{
-    collections::HashMap, fmt::Display,
-};
 use super::is_default;
 use crate::rdocx_decl::{
-    Cash, ToRdocx,
+    self, Cash, ToRdocx,
     equation::Equation,
     list_level::{ListLevel, ListLevelStyleId},
     run::{self, Run},
@@ -15,6 +12,7 @@ use crate::rdocx_decl::{
 };
 use rdocx::Document;
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, fmt::Display};
 
 //todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -118,29 +116,39 @@ pub struct Paragraph {
 }
 
 impl ToRdocx<Document> for Paragraph {
-    fn to_rdocx(&self, doc: &mut Document, _data: (), cash: &mut Cash) {
+    fn to_rdocx(
+        &self,
+        doc: &mut Document,
+        _data: (),
+        cash: &mut Cash,
+    ) -> Vec<rdocx_decl::Error> {
         let list_level = self.style.list_level.as_ref().map(|list_level| {
             (
-                cash.lists.get(&list_level.stile.id).cloned().unwrap_or_else(|| {
-                    let result = doc.add_list_definition(
-                        list_level.stile.style
-                            .iter()
-                            .cloned()
-                            .map(Into::into)
-                            .collect::<Vec<_>>()
-                            .as_slice(),
-                    );
-                    cash.lists.insert(list_level.stile.id.clone(), result);
-                    result
-                }),
+                cash.lists
+                    .get(&list_level.stile.id)
+                    .cloned()
+                    .unwrap_or_else(|| {
+                        let result = doc.add_list_definition(
+                            list_level
+                                .stile
+                                .style
+                                .iter()
+                                .cloned()
+                                .map(Into::into)
+                                .collect::<Vec<_>>()
+                                .as_slice(),
+                        );
+                        cash.lists.insert(list_level.stile.id.clone(), result);
+                        result
+                    }),
                 list_level.level,
             )
         });
 
         let mut paragraph = doc.add_paragraph("");
-        self.contents.iter().for_each(|content| {
-            content.to_rdocx(&mut paragraph, &self.style.base_run, cash);
-        });
+        let mut err = self.contents.iter().flat_map(|content| {
+            content.to_rdocx(&mut paragraph, &self.style.base_run, cash)
+        }).collect::<Vec<_>>();
 
         paragraph.set_alignment_value(self.style.alignment.map(Into::into));
         paragraph.set_space_before_value(self.style.space_before.map(Into::into));
@@ -217,8 +225,11 @@ impl ToRdocx<Document> for Paragraph {
             None => {}
         }
 
-        //todo: Add error handling.
-        paragraph.set_numbering_value(list_level);
+        if !paragraph.set_numbering_value(list_level) {
+            err.push(rdocx_decl::Error::RdocxSetNumberingValue);
+        }
+
+        err
     }
 }
 

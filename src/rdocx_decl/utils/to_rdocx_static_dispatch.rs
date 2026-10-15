@@ -49,7 +49,7 @@ fn to_rdocx_static_dispatch(
     result.push_str(&format!(
         r"
         impl<{generic0}> ToRdocx<{generic1}, {generic2}> for {name} {{
-            fn to_rdocx(&self, doc: &mut {generic1}, data: {generic2}, cash: &mut Cash) {{
+            fn to_rdocx(&self, doc: &mut {generic1}, data: {generic2}, cash: &mut Cash) -> Vec<rdocx_decl::Error> {{
                 match self {{
     "
     ));

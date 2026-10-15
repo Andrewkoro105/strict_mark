@@ -1,12 +1,14 @@
 #[macro_use]
 pub mod utils;
 pub mod document;
+pub mod equation;
+pub mod list_level;
 pub mod paragraph;
 pub mod run;
-pub mod list_level;
-pub mod equation;
 
 use std::collections::HashMap;
+
+use rdocx::MathConversionDiagnostic;
 
 use crate::rdocx_decl::list_level::ListLevelStyleId;
 
@@ -19,13 +21,21 @@ pub struct Cash {
     pub lists: HashMap<ListLevelStyleId, u32>,
 }
 
+#[derive(Debug)]
+pub enum Error {
+    RdocxSetNumberingValue,
+    RdocxMathConversion(Vec<MathConversionDiagnostic>),
+    RdocxAddEquation(rdocx::Error),
+}
+
 pub trait ToRdocx<D, T = ()> {
-    fn to_rdocx(&self, doc: &mut D, data: T, cash: &mut Cash);
+    fn to_rdocx(&self, doc: &mut D, data: T, cash: &mut Cash) -> Vec<Error>;
 }
 
 #[cfg(test)]
 mod test {
     use crate::rdocx_decl::{
+        Error,
         document::{self, Document},
         paragraph::{self, Paragraph},
         run::{self, Caps, Run},
@@ -35,11 +45,11 @@ mod test {
     use std::{fs, path::Path};
 
     #[test]
-    fn simple() {
+    fn simple() -> Result<(), Error> {
         let dir = Path::new("./tmp/test/");
         fs::create_dir_all(dir).unwrap();
 
-        Document {
+        let ( mut doc, err) = Document {
             contents: vec![
                 Paragraph {
                     contents: vec![
@@ -105,11 +115,14 @@ mod test {
                 }
                 .into(),
             ],
-            stile: document::Stile::default()
+            stile: document::Stile::default(),
         }
-        .to_rdocx()
-        .save(dir.join("test.docx"))
-        .unwrap();
+        .to_rdocx();
+
+        doc.save(dir.join("test.docx")).unwrap();
+        assert!(err.is_empty());
+
+        Ok(())
     }
 
     #[test]

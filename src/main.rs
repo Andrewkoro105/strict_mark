@@ -100,15 +100,15 @@ fn main() {
     }
     .parse(|s| strict_mark().parse(s));
 
-    info!("parse: {:?}", cli.path,);
+    info!("Parse: {:?}", cli.path,);
 
     match result {
-        Ok((ast, errs)) => {
-            if !errs.is_empty() {
-                warn!(
+        Ok((ast, parse_errs)) => {
+            if !parse_errs.is_empty() {
+                error!(
                     "Parse error:\n{}\n",
-                    errs.iter()
-                        .map(|err| format!("\t{:?}", err))
+                    parse_errs.iter()
+                        .map(|err| format!("{:#?}", err))
                         .collect::<Vec<_>>()
                         .join("\n")
                 );
@@ -117,13 +117,34 @@ fn main() {
 
             let compiler = Compiler::load(&cli.style_path);
 
-            let (rdocx_decl_ast, errs) = compiler.compile(&ast);
+            let (rdocx_decl_ast, compile_errs) = compiler.compile(&ast);
             debug!(
                 "Compile result:\n{}",
                 serde_saphyr::to_string(&rdocx_decl_ast).unwrap()
             );
 
-            let mut rdocx_doc = rdocx_decl_ast.to_rdocx();
+            if !compile_errs.is_empty() {
+                error!(
+                    "Compile error:{}\n",
+                    compile_errs.iter()
+                        .map(|err| format!("\t{:#?}", err))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                );
+            }
+
+            let (mut rdocx_doc, rdocx_decl_errs) = rdocx_decl_ast.to_rdocx();
+
+            if !rdocx_decl_errs.is_empty() {
+                error!(
+                    "To rdocx error:\n{}\n",
+                    rdocx_decl_errs.iter()
+                        .map(|err| format!("{:#?}", err))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                );
+            }
+
             rdocx_doc.save(&cli.output_path).unwrap();
             info!("Save: {:?}", cli.output_path);
 
@@ -131,16 +152,6 @@ fn main() {
                 let pdf_path = cli.output_path.with_extension("pdf");
                 rdocx_doc.save_pdf(&pdf_path).unwrap();
                 info!("Save: {:?}", pdf_path);
-            }
-
-            if !errs.is_empty() {
-                warn!(
-                    "Compile error:\n{}\n",
-                    errs.iter()
-                        .map(|err| format!("\t{:?}", err))
-                        .collect::<Vec<_>>()
-                        .join("\n")
-                );
             }
         }
         Err(errs) => {

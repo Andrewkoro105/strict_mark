@@ -97,12 +97,12 @@ impl Default for Compiler {
                         rdocx_style: rdocx_decl::paragraph::Style::default()
                             .alignment(Some(rdocx_decl::paragraph::Alignment::Center))
                             .borders(hashmap! {
-                                border::Edge::Top => Border {color: Color::Hex("#000000".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
-                                border::Edge::Bottom => Border {color: Color::Hex("#0000ff".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
-                                border::Edge::Left => Border {color: Color::Hex("#00ff00".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
-                                border::Edge::Right => Border {color: Color::Hex("#00ffff".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
-                                border::Edge::Between => Border {color: Color::Hex("#ff0000".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
-                                border::Edge::Bar => Border {color: Color::Hex("#ff00ff".into()),size: Length::Pt(5.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Top => Border {color: Color::Hex("#000000".into()),size: Length::Pt(15.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Bottom => Border {color: Color::Hex("#0000ff".into()),size: Length::Pt(15.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Left => Border {color: Color::Hex("#00ff00".into()),size: Length::Pt(15.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Right => Border {color: Color::Hex("#00ffff".into()),size: Length::Pt(15.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Between => Border {color: Color::Hex("#ff0000".into()),size: Length::Pt(15.),style: border::BorderStyle::DotDash,},
+                                border::Edge::Bar => Border {color: Color::Hex("#ff00ff".into()),size: Length::Pt(15.),style: border::BorderStyle::DotDash,},
                             })
                             .base_run(Some(
                                 run::Style::default()
