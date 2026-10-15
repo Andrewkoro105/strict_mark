@@ -147,7 +147,7 @@ fn main() {
         }
         Err(errs) => {
             error!(
-                "Total Error:\n{:#?}\n",
+                "Total parse error:\n{:#?}\n",
                 errs,
             );
         }

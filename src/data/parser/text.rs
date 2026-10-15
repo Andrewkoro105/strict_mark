@@ -43,6 +43,9 @@ fn base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error>> 
         just("\\{")
             .to("{")
             .labelled(Expected::Text(TextExpected::Screening)),
+        just("\\}")
+            .to("}")
+            .labelled(Expected::Text(TextExpected::Screening)),
         just("\\\\")
             .to("\\")
             .labelled(Expected::Text(TextExpected::Screening)),
@@ -59,6 +62,7 @@ fn base_text<'src>() -> impl Parser<'src, &'src str, String, extra::Err<Error>> 
             just("@"),
             just("$"),
             just("{"),
+            just("}"),
             just("\n"),
         ))
         .not(),

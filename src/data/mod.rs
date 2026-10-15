@@ -84,7 +84,7 @@ pub struct Paragraph {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct InsertPage {
+pub struct PageInsertion {
     pub path: PathBuf,
 }
 
@@ -94,7 +94,7 @@ pub struct Formula {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct InsertContent {
+pub struct ResourceInsertion {
     pub path: PathBuf,
     pub caption: Text,
 }
@@ -119,8 +119,8 @@ pre_final_enums!(
         Title(Title),
         Paragraph(Paragraph),
         Formula(Formula),
-        InsertPage(InsertPage),
-        InsertContent(InsertContent),
+        PageInsertion(PageInsertion),
+        ResourceInsertion(ResourceInsertion),
         Enumerate(Enumerate<Self>),
         Code(Code),
         PhantomNewLine,

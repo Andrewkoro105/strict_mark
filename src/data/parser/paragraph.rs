@@ -8,7 +8,7 @@ use crate::data::{
 };
 use chumsky::prelude::*;
 
-fn base_paragraph<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error>> + Clone {
+pub fn base_paragraph<'src>() -> impl Parser<'src, &'src str, Text, extra::Err<Error>> + Clone {
     text()
         .then(just("\n").to(TextVariants::PhantomNewLine).or_not())
         .map(|(mut text, new_line)| {
