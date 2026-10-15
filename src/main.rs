@@ -106,11 +106,8 @@ fn main() {
         Ok((ast, parse_errs)) => {
             if !parse_errs.is_empty() {
                 error!(
-                    "Parse error:\n{}\n",
-                    parse_errs.iter()
-                        .map(|err| format!("{:#?}", err))
-                        .collect::<Vec<_>>()
-                        .join("\n")
+                    "Parse error:\n{:#?}\n",
+                    parse_errs
                 );
             }
             debug!("Parse result:\n{:#?}", ast);
@@ -125,11 +122,8 @@ fn main() {
 
             if !compile_errs.is_empty() {
                 error!(
-                    "Compile error:{}\n",
-                    compile_errs.iter()
-                        .map(|err| format!("\t{:#?}", err))
-                        .collect::<Vec<_>>()
-                        .join("\n")
+                    "Compile error:\n{:#?}\n",
+                    compile_errs
                 );
             }
 
@@ -137,11 +131,8 @@ fn main() {
 
             if !rdocx_decl_errs.is_empty() {
                 error!(
-                    "To rdocx error:\n{}\n",
-                    rdocx_decl_errs.iter()
-                        .map(|err| format!("{:#?}", err))
-                        .collect::<Vec<_>>()
-                        .join("\n")
+                    "To rdocx error:\n{:#?}\n",
+                    rdocx_decl_errs
                 );
             }
 
@@ -156,11 +147,8 @@ fn main() {
         }
         Err(errs) => {
             error!(
-                "Total Error: [\n{}\n]",
-                errs.iter()
-                    .map(|err| format!("\t{:?}", err))
-                    .collect::<Vec<_>>()
-                    .join("\n"),
+                "Total Error:\n{:#?}\n",
+                errs,
             );
         }
     }
