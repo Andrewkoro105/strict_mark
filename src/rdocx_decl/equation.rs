@@ -24,10 +24,12 @@ impl<'p> ToRdocx<rdocx::Paragraph<'p>, &Option<run::Style>> for Equation {
     ) -> Vec<rdocx_decl::Error> {
         let mut err = vec![];
         let conversion_result = equation_from_latex(&self.latex).unwrap();
-        err.push(rdocx_decl::Error::RdocxMathConversion(
-            conversion_result.diagnostics,
-        ));
-
+        if !conversion_result.diagnostics.is_empty() {
+            err.push(rdocx_decl::Error::RdocxMathConversion(
+                conversion_result.diagnostics,
+            ));
+        }
+        
         let add_equation_result = paragraph.add_equation(match self.equation_type {
             EquationType::Inline => OfficeMath::inline(conversion_result.value.expressions),
             EquationType::Display => {
