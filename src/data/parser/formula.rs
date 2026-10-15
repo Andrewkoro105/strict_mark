@@ -20,10 +20,10 @@ fn formula_str<'src>(
         .repeated()
         .collect()
         .delimited_by(
-            just(delimiter.clone()).labelled(Expected::Formula(FormulaExpected::Delimiter(
+            just(delimiter.clone()).then(just("\n").or_not()).labelled(Expected::Formula(FormulaExpected::Delimiter(
                 delimiter_count,
             ))),
-            just(delimiter).labelled(Expected::Formula(FormulaExpected::Delimiter(
+            just(delimiter).then(just("\n").or_not()).labelled(Expected::Formula(FormulaExpected::Delimiter(
                 delimiter_count,
             ))),
         )
