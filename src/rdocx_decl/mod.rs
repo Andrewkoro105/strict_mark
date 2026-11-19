@@ -11,16 +11,23 @@ use std::{collections::HashMap, io, path::PathBuf};
 use image::ImageError;
 use rdocx::MathConversionDiagnostic;
 
-use crate::rdocx_decl::list_level::ListLevelStyleId;
+use crate::rdocx_decl::{list_level::ListLevelStyleId, run::PictureId};
 
 pub(crate) fn is_default<T: Default + PartialEq>(value: &T) -> bool {
     value == &T::default()
 }
 
+#[derive(Debug, Clone)]
+pub struct PictureData<I = String>{
+    pub rdocx_id: I,
+    pub wight: u32,
+    pub height: u32,
+}
+
 #[derive(Debug, Default)]
 pub struct Cash {
     pub lists: HashMap<ListLevelStyleId, u32>,
-    pub pictures: HashMap<String, Option<String>>,
+    pub pictures: HashMap<PictureId, Option<PictureData>>,
 }
 
 #[derive(Debug)]
@@ -32,7 +39,7 @@ pub enum Error {
     ImageEncode(ImageError),
     ImageOpen(io::Error),
     UndefinedFileName { path: PathBuf },
-    ImageNotFound { name: String },
+    ImageNotFound { name: PictureId },
 }
 
 pub trait ToRdocx<D, T = ()> {
@@ -45,7 +52,7 @@ mod test {
         Error,
         document::{self, Document},
         paragraph::{self, Paragraph},
-        run::{self, Caps, Run},
+        run::{self, Caps, PictureId, Run},
         utils::Length,
     };
     use std::{
@@ -126,7 +133,7 @@ mod test {
                 }
                 .into(),
             ],
-            stile: document::Stile::default(),
+            stile: document::Style::default(),
         }
         .to_rdocx();
 
@@ -147,9 +154,8 @@ mod test {
                     contents: vec![
                         Run {
                             contents: vec![run::Content::Picture {
-                                name: "name".to_owned(),
-                                width: Length::Mm(50.),
-                                height: Length::Mm(50.),
+                                id: PictureId::Name("name".to_owned()),
+                                dpi: 300,
                             }],
                             style: run::Style::default(),
                         }
@@ -160,10 +166,10 @@ mod test {
                 }
                 .into(),
             ],
-            stile: document::Stile {
+            stile: document::Style {
                 lists: HashMap::new(),
                 pictures: hashmap! {
-                    "name".to_owned() => PathBuf::from("example_sm/my_demon.png"),
+                    PictureId::Name("name".to_owned()) => PathBuf::from("example_sm/my_demon.png"),
                 },
             },
         }
@@ -172,5 +178,15 @@ mod test {
         doc.save(dir.join("picture.docx")).unwrap();
         doc.save_pdf(dir.join("picture.pdf")).unwrap();
         assert!(err.is_empty());
+    }
+}
+
+impl<I> PictureData<I> {
+    pub fn map<I2>(self, f: impl FnOnce(I) -> I2) -> PictureData<I2> {
+        PictureData {
+            rdocx_id: f(self.rdocx_id),
+            height: self.height,
+            wight: self.wight,
+        }
     }
 }

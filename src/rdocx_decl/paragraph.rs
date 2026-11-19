@@ -38,7 +38,7 @@ pub struct ParagraphListLevelStyle {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParagraphListLevel {
-    pub stile: ParagraphListLevelStyle,
+    pub style: ParagraphListLevelStyle,
     pub level: u32,
 }
 
@@ -125,12 +125,12 @@ impl ToRdocx<Document> for Paragraph {
         let list_level = self.style.list_level.as_ref().map(|list_level| {
             (
                 cash.lists
-                    .get(&list_level.stile.id)
+                    .get(&list_level.style.id)
                     .cloned()
                     .unwrap_or_else(|| {
                         let result = doc.add_list_definition(
                             list_level
-                                .stile
+                                .style
                                 .style
                                 .iter()
                                 .cloned()
@@ -138,7 +138,7 @@ impl ToRdocx<Document> for Paragraph {
                                 .collect::<Vec<_>>()
                                 .as_slice(),
                         );
-                        cash.lists.insert(list_level.stile.id.clone(), result);
+                        cash.lists.insert(list_level.style.id.clone(), result);
                         result
                     }),
                 list_level.level,

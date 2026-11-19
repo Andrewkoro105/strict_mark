@@ -1,3 +1,5 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use super::is_default;
 use crate::rdocx_decl::{
     self, ToRdocx,
@@ -5,6 +7,12 @@ use crate::rdocx_decl::{
 };
 use rdocx::Paragraph;
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PictureId {
+    Name(String),
+    Num(usize),
+}
 
 //todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -72,11 +80,7 @@ pub struct Style {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Content {
     Text(String),
-    Picture {
-        name: String,
-        width: Length,
-        height: Length,
-    },
+    Picture { id: PictureId, dpi: u32 },
 }
 
 /// todo: add tab, break, picture, field, symbol
@@ -103,15 +107,15 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
         let mut run = paragraph.add_run("");
         self.contents.iter().for_each(|content| match content {
             Content::Text(text) => run.add_text(text),
-            Content::Picture {
-                name,
-                width,
-                height,
-            } => match cash.pictures.get(name) {
-                Some(Some(id)) => run.add_picture(id, width.clone().into(), height.clone().into()),
+            Content::Picture { id, dpi } => match cash.pictures.get(id) {
+                Some(Some(picture_date)) => run.add_picture(
+                    &picture_date.rdocx_id,
+                    Length::Inches((picture_date.wight / dpi) as _).into(),
+                    Length::Inches((picture_date.height / dpi) as _).into(),
+                ),
                 Some(None) => run.add_text("[Error image]"),
                 None => {
-                    errs.push(rdocx_decl::Error::ImageNotFound { name: name.clone() });
+                    errs.push(rdocx_decl::Error::ImageNotFound { name: id.clone() });
                     run.add_text("[Error image not found]")
                 }
             },
@@ -284,5 +288,12 @@ impl Style {
     pub fn hidden(mut self, hidden: Option<bool>) -> Self {
         self.hidden = hidden;
         self
+    }
+}
+
+impl PictureId {
+    pub fn unique() -> Self {
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+        PictureId::Num(COUNTER.fetch_add(1, Ordering::Relaxed) + 1)
     }
 }
