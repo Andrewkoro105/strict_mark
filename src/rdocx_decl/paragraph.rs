@@ -226,7 +226,7 @@ impl ToRdocx<Document> for Paragraph {
         }
 
         if !paragraph.set_numbering_value(list_level) {
-            err.push(rdocx_decl::Error::RdocxSetNumberingValue);
+            err.push(rdocx_decl::Error::SetNumberingValue);
         }
 
         err

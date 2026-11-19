@@ -6,8 +6,9 @@ pub mod list_level;
 pub mod paragraph;
 pub mod run;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, io, path::PathBuf};
 
+use image::ImageError;
 use rdocx::MathConversionDiagnostic;
 
 use crate::rdocx_decl::list_level::ListLevelStyleId;
@@ -19,13 +20,19 @@ pub(crate) fn is_default<T: Default + PartialEq>(value: &T) -> bool {
 #[derive(Debug, Default)]
 pub struct Cash {
     pub lists: HashMap<ListLevelStyleId, u32>,
+    pub pictures: HashMap<String, Option<String>>,
 }
 
 #[derive(Debug)]
 pub enum Error {
-    RdocxSetNumberingValue,
-    RdocxMathConversion(Vec<MathConversionDiagnostic>),
-    RdocxAddEquation(rdocx::Error),
+    SetNumberingValue,
+    MathConversion(Vec<MathConversionDiagnostic>),
+    AddEquation(rdocx::Error),
+    ImageDecode(ImageError),
+    ImageEncode(ImageError),
+    ImageOpen(io::Error),
+    UndefinedFileName { path: PathBuf },
+    ImageNotFound { name: String },
 }
 
 pub trait ToRdocx<D, T = ()> {
@@ -41,15 +48,19 @@ mod test {
         run::{self, Caps, Run},
         utils::Length,
     };
-    use rdocx::ListLevel;
-    use std::{fs, path::Path};
+    use std::{
+        collections::HashMap,
+        fs,
+        path::{Path, PathBuf},
+    };
+    use sugar::hashmap;
 
     #[test]
     fn simple() -> Result<(), Error> {
         let dir = Path::new("./tmp/test/");
         fs::create_dir_all(dir).unwrap();
 
-        let ( mut doc, err) = Document {
+        let (mut doc, err) = Document {
             contents: vec![
                 Paragraph {
                     contents: vec![
@@ -126,19 +137,40 @@ mod test {
     }
 
     #[test]
-    fn list() {
+    fn picture() {
         let dir = Path::new("./tmp/test/");
         fs::create_dir_all(dir).unwrap();
 
-        let mut doc = rdocx::Document::new();
-        let num_id = doc.add_list_definition(&[ListLevel::bullet(), ListLevel::decimal().start(3)]);
-        doc.add_paragraph("first bullet").set_numbering(num_id, 0);
-        doc.add_paragraph("third decimal").set_numbering(num_id, 1);
-        doc.add_paragraph(
-            "third decimal, third decimal, third decimal, third decimal,third decimal, ",
-        );
+        let (mut doc, err) = Document {
+            contents: vec![
+                Paragraph {
+                    contents: vec![
+                        Run {
+                            contents: vec![run::Content::Picture {
+                                name: "name".to_owned(),
+                                width: Length::Mm(50.),
+                                height: Length::Mm(50.),
+                            }],
+                            style: run::Style::default(),
+                        }
+                        .into(),
+                    ],
+                    style: paragraph::Style::default()
+                        .alignment(Some(paragraph::Alignment::Center)),
+                }
+                .into(),
+            ],
+            stile: document::Stile {
+                lists: HashMap::new(),
+                pictures: hashmap! {
+                    "name".to_owned() => PathBuf::from("example_sm/my_demon.png"),
+                },
+            },
+        }
+        .to_rdocx();
 
-        doc.add_paragraph("first bullet").set_numbering(num_id, 0);
-        doc.add_paragraph("third decimal").set_numbering(num_id, 1);
+        doc.save(dir.join("picture.docx")).unwrap();
+        doc.save_pdf(dir.join("picture.pdf")).unwrap();
+        assert!(err.is_empty());
     }
 }

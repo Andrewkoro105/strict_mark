@@ -1,9 +1,10 @@
+use super::is_default;
 use crate::rdocx_decl::{
-    self, ToRdocx, utils::{Color, Length}
+    self, ToRdocx,
+    utils::{Color, Length},
 };
 use rdocx::Paragraph;
 use serde::{Deserialize, Serialize};
-use super::is_default;
 
 //todo: This element is taken from rdocx; later, it needs to be changed in rdocx itself.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -71,6 +72,11 @@ pub struct Style {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Content {
     Text(String),
+    Picture {
+        name: String,
+        width: Length,
+        height: Length,
+    },
 }
 
 /// todo: add tab, break, picture, field, symbol
@@ -86,15 +92,29 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
         &self,
         paragraph: &mut Paragraph<'r>,
         base_style: &Option<Style>,
-        _cash: &mut super::Cash,
+        cash: &mut super::Cash,
     ) -> Vec<rdocx_decl::Error> {
-        let style = base_style.clone()
+        let mut errs = vec![];
+        let style = base_style
+            .clone()
             .map(|base_style| self.style.clone().and(base_style))
             .unwrap_or(self.style.clone());
 
         let mut run = paragraph.add_run("");
         self.contents.iter().for_each(|content| match content {
             Content::Text(text) => run.add_text(text),
+            Content::Picture {
+                name,
+                width,
+                height,
+            } => match cash.pictures.get(name) {
+                Some(Some(id)) => run.add_picture(id, width.clone().into(), height.clone().into()),
+                Some(None) => run.add_text("[Error image]"),
+                None => {
+                    errs.push(rdocx_decl::Error::ImageNotFound { name: name.clone() });
+                    run.add_text("[Error image not found]")
+                }
+            },
         });
         run.set_bold_value(style.bold);
         run.set_italic_value(style.italic);
@@ -102,24 +122,9 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
         run.set_size_value(style.size.map(Length::into_rdocx).map(rdocx::Length::to_pt));
         run.set_font_value(style.font_name.as_deref());
         run.set_language_value(style.language.as_deref());
-        run.set_color_value(
-            style
-                .color
-                .as_ref()
-                .map(ToString::to_string).as_deref(),
-        );
-        run.set_highlight_value(
-            style
-                .highlight
-                .as_ref()
-                .map(ToString::to_string).as_deref(),
-        );
-        run.set_shading_value(
-            style
-                .shading
-                .as_ref()
-                .map(ToString::to_string).as_deref(),
-        );
+        run.set_color_value(style.color.as_ref().map(ToString::to_string).as_deref());
+        run.set_highlight_value(style.highlight.as_ref().map(ToString::to_string).as_deref());
+        run.set_shading_value(style.shading.as_ref().map(ToString::to_string).as_deref());
         run.set_strike_value(style.strike);
 
         if let Some(double_strike) = style.double_strike {
@@ -129,13 +134,13 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
         match style.caps {
             Some(Caps::All) => run.set_all_caps(true),
             Some(Caps::Small) => run.set_small_caps(true),
-            None => {},
+            None => {}
         }
 
         match style.vertical_alignment {
             Some(VerticalAlignment::Subscript) => run.set_subscript(),
             Some(VerticalAlignment::Superscript) => run.set_superscript(),
-            None => {},
+            None => {}
         }
 
         if let Some(character_spacing) = style.character_spacing {
@@ -154,7 +159,7 @@ impl<'r> ToRdocx<Paragraph<'r>, &Option<Style>> for Run {
             run.set_hidden(hidden);
         }
 
-        vec![]
+        errs
     }
 }
 

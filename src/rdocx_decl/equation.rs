@@ -25,7 +25,7 @@ impl<'p> ToRdocx<rdocx::Paragraph<'p>, &Option<run::Style>> for Equation {
         let mut err = vec![];
         let conversion_result = equation_from_latex(&self.latex).unwrap();
         if !conversion_result.diagnostics.is_empty() {
-            err.push(rdocx_decl::Error::RdocxMathConversion(
+            err.push(rdocx_decl::Error::MathConversion(
                 conversion_result.diagnostics,
             ));
         }
@@ -38,7 +38,7 @@ impl<'p> ToRdocx<rdocx::Paragraph<'p>, &Option<run::Style>> for Equation {
         });
 
         if let Err(add_equation_err) = add_equation_result {
-            err.push(rdocx_decl::Error::RdocxAddEquation(add_equation_err));
+            err.push(rdocx_decl::Error::AddEquation(add_equation_err));
         }
 
         err
