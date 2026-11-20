@@ -8,13 +8,14 @@ pub mod title;
 
 use crate::{
     compiler::{
-        enumerate::Enumerate, formula::Formula, lua::LuaStyle, paragraph::Paragraph, resource_insertion::ResourceInsertion, title::Title
+        enumerate::Enumerate, formula::Formula, lua::LuaStyle, paragraph::Paragraph,
+        resource_insertion::ResourceInsertion, title::Title,
     },
     data::ParseData,
     rdocx_decl::{
-        self, document::{self, StyleAdd},
-        list_level::ListLevelStyleId,
-        paragraph::{Alignment, ParagraphListLevelStyle},
+        self,
+        document::{self, StyleAdd},
+        paragraph::Alignment,
         run,
         utils::{
             Color, Length,
@@ -23,7 +24,6 @@ use crate::{
     },
 };
 use itertools::MultiUnzip;
-use itertools::multiunzip;
 use serde::{Deserialize, Serialize};
 use std::{
     fs::File,
@@ -116,7 +116,8 @@ impl Default for Compiler {
                                 run::Style::default()
                                     .size(Some(Length::Pt(20.)))
                                     .bold(Some(true)),
-                            )),
+                            ))
+                            .keep_with_next(Some(true)).keep_together(Some(true)),
                     }
                     .into(),
                 },
@@ -129,7 +130,7 @@ impl Default for Compiler {
                                 run::Style::default()
                                     .size(Some(Length::Pt(20.)))
                                     .bold(Some(true)),
-                            )),
+                            )).keep_with_next(Some(true)).keep_together(Some(true)),
                     }
                     .into(),
                 },
@@ -140,7 +141,7 @@ impl Default for Compiler {
                             run::Style::default()
                                 .size(Some(Length::Pt(15.)))
                                 .bold(Some(true)),
-                        )),
+                        )).keep_with_next(Some(true)).keep_together(Some(true)),
                     }
                     .into(),
                 },
@@ -151,7 +152,7 @@ impl Default for Compiler {
                             run::Style::default()
                                 .size(Some(Length::Pt(12.)))
                                 .bold(Some(true)),
-                        )),
+                        )).keep_with_next(Some(true)).keep_together(Some(true)),
                     }
                     .into(),
                 },
@@ -159,10 +160,7 @@ impl Default for Compiler {
             enumerates: vec![Enumerate {
                 data: BaseCompilerData::none(),
                 style: enumerate::Style {
-                    rdocx_style_name: ParagraphListLevelStyle {
-                        id: ListLevelStyleId::unique(),
-                        style: vec![]
-                    },
+                    rdocx_style: vec![],
                 }
                 .into(),
             }],
@@ -255,12 +253,18 @@ impl Compile<ParseData, ResultCompile> for Compiler {
                 .iter()
                 .cloned()
                 .find_map(|compiler| compiler.compile(resource_insertion, ctx, cash))
-                .map(|(result, (id, path))| (result, Some(rdocx_decl::document::Style{
-                    pictures: hashmap! {
-                        id => path,
-                    },
-                    ..Default::default()
-                }), vec![]))
+                .map(|(result, (id, path))| {
+                    (
+                        result,
+                        Some(rdocx_decl::document::Style {
+                            pictures: hashmap! {
+                                id => path,
+                            },
+                            ..Default::default()
+                        }),
+                        vec![],
+                    )
+                })
                 .unwrap_or_else(|| (vec![], None, vec![Error::NoSuitableStyle(ast.clone())])),
             _ => todo!("Not supported: {ast:#?}"),
         }

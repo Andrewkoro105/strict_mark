@@ -116,12 +116,7 @@ pub struct Paragraph {
 }
 
 impl ToRdocx<Document> for Paragraph {
-    fn to_rdocx(
-        &self,
-        doc: &mut Document,
-        _data: (),
-        cash: &mut Cash,
-    ) -> Vec<rdocx_decl::Error> {
+    fn to_rdocx(&self, doc: &mut Document, _data: (), cash: &mut Cash) -> Vec<rdocx_decl::Error> {
         let list_level = self.style.list_level.as_ref().map(|list_level| {
             (
                 cash.lists
@@ -146,9 +141,11 @@ impl ToRdocx<Document> for Paragraph {
         });
 
         let mut paragraph = doc.add_paragraph("");
-        let mut err = self.contents.iter().flat_map(|content| {
-            content.to_rdocx(&mut paragraph, &self.style.base_run, cash)
-        }).collect::<Vec<_>>();
+        let mut err = self
+            .contents
+            .iter()
+            .flat_map(|content| content.to_rdocx(&mut paragraph, &self.style.base_run, cash))
+            .collect::<Vec<_>>();
 
         paragraph.set_alignment_value(self.style.alignment.map(Into::into));
         paragraph.set_space_before_value(self.style.space_before.map(Into::into));
@@ -341,5 +338,15 @@ impl Style {
     pub fn base_run(mut self, base_run: Option<run::Style>) -> Self {
         self.base_run = base_run;
         self
+    }
+}
+
+impl ParagraphListLevelStyle {
+    pub fn new(id: ListLevelStyleId, style: Vec<ListLevel>) -> Self {
+        Self { id, style }
+    }
+
+    pub fn unique(style: Vec<ListLevel>) -> Self {
+        Self { id: ListLevelStyleId::unique(), style }
     }
 }

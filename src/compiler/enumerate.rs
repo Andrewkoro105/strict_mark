@@ -1,17 +1,18 @@
 use crate::{
-    compiler::{BaseCompiler, BaseCompilerDataRef, Compile, Compiler, Ctx, Error, ResultCompile},
+    compiler::{BaseCompiler, BaseCompilerDataRef, Compile, Compiler, Ctx, ResultCompile},
     data::{self, EnumerateType},
     rdocx_decl::{
         self,
-        paragraph::{ParagraphListLevel, ParagraphListLevelStyle},
         document::StyleAdd,
+        list_level::ListLevel,
+        paragraph::{ParagraphListLevel, ParagraphListLevelStyle},
     },
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Style {
-    pub rdocx_style_name: ParagraphListLevelStyle,
+    pub rdocx_style: Vec<ListLevel>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -21,12 +22,7 @@ pub struct Data {
 
 pub type Enumerate = BaseCompiler<Style, Data>;
 
-impl
-    Compile<
-        data::Enumerate<data::ParseData>,
-        Option<ResultCompile>,
-    > for (Enumerate, &Compiler)
-{
+impl Compile<data::Enumerate<data::ParseData>, Option<ResultCompile>> for (Enumerate, &Compiler) {
     fn compile(
         &self,
         ast: &data::Enumerate<data::ParseData>,
@@ -45,6 +41,8 @@ impl
                 .style
                 .compile(ast, &self.0.data)
                 .unwrap_or_else(|style| {
+                    let paragraph_list_level_style =
+                        ParagraphListLevelStyle::unique(style.rdocx_style);
                     ast.data
                         .iter()
                         .map(|ast| {
@@ -69,7 +67,7 @@ impl
                                             } else if i == 0 {
                                                 paragraph.style.list_level =
                                                     Some(ParagraphListLevel {
-                                                        style: style.rdocx_style_name.clone(),
+                                                        style: paragraph_list_level_style.clone(),
                                                         level: 1,
                                                     })
                                             }

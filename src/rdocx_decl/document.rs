@@ -7,7 +7,7 @@ use crate::rdocx_decl::{
     paragraph::Paragraph,
     run::PictureId,
 };
-use image::{DynamicImage, ImageFormat, ImageReader, ImageResult};
+use image::{ImageFormat, ImageReader};
 use serde::{Deserialize, Serialize};
 
 to_rdocx_static_dispatch! {
@@ -132,7 +132,7 @@ impl Document {
     }
 }
 
-pub trait StyleAdd{
+pub trait StyleAdd {
     fn add(self, b: Self) -> Self;
 }
 
